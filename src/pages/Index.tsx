@@ -1,10 +1,13 @@
-import { useMemo, useState } from "react";
-import { ChevronDown, Heart, LocateFixed, Navigation, Search, Sparkles, X } from "lucide-react";
+import { useMemo, useRef, useState } from "react";
+import { ChevronDown, Heart, LocateFixed, Navigation, Plus, Search, Sparkles, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { BarCard } from "@/components/BarCard";
 import { BottomNav } from "@/components/BottomNav";
+import { AddSpotDialog } from "@/components/AddSpotDialog";
 import { useFavorites } from "@/hooks/use-favorites";
+import { useCustomSpots } from "@/hooks/use-custom-spots";
 import { Filter, bars, filters, stateCopy } from "@/lib/bars";
+import { spotEmoji } from "@/lib/spots";
 import { cn } from "@/lib/utils";
 
 const hourly = [
@@ -23,6 +26,22 @@ const Index = () => {
   const [expanded, setExpanded] = useState(true);
   const [pointer, setPointer] = useState({ x: 56, y: 42 });
   const { favorites, toggleFavorite } = useFavorites();
+  const { spots, addSpot } = useCustomSpots();
+  const [spotDialogOpen, setSpotDialogOpen] = useState(false);
+  const [pendingPosition, setPendingPosition] = useState<{ x: number; y: number } | null>(null);
+  const pressTimer = useRef<number | null>(null);
+  const pressMoved = useRef(false);
+
+  const openAddDialog = (position: { x: number; y: number } | null) => {
+    setPendingPosition(position ?? { x: 50, y: 50 });
+    setSpotDialogOpen(true);
+  };
+
+  const handleSubmitSpot = (values: { name: string; note: string; icon: import("@/lib/spots").SpotIcon }) => {
+    const position = pendingPosition ?? { x: 50, y: 50 };
+    addSpot({ ...values, x: position.x, y: position.y });
+    setPendingPosition(null);
+  };
 
   const visibleBars = useMemo(() => {
     return bars.filter((bar) => {
@@ -90,6 +109,29 @@ const Index = () => {
           onPointerMove={(event) => {
             const rect = event.currentTarget.getBoundingClientRect();
             setPointer({ x: ((event.clientX - rect.left) / rect.width) * 100, y: ((event.clientY - rect.top) / rect.height) * 100 });
+            pressMoved.current = true;
+          }}
+          onPointerDown={(event) => {
+            pressMoved.current = false;
+            const rect = event.currentTarget.getBoundingClientRect();
+            const x = ((event.clientX - rect.left) / rect.width) * 100;
+            const y = ((event.clientY - rect.top) / rect.height) * 100;
+            if (pressTimer.current) window.clearTimeout(pressTimer.current);
+            pressTimer.current = window.setTimeout(() => {
+              if (!pressMoved.current) openAddDialog({ x, y });
+            }, 550);
+          }}
+          onPointerUp={() => {
+            if (pressTimer.current) {
+              window.clearTimeout(pressTimer.current);
+              pressTimer.current = null;
+            }
+          }}
+          onPointerLeave={() => {
+            if (pressTimer.current) {
+              window.clearTimeout(pressTimer.current);
+              pressTimer.current = null;
+            }
           }}
         >
           <div className="absolute left-4 top-4 z-10 flex items-center gap-1 rounded-md bg-espresso/85 px-3 py-1.5 text-xs font-medium text-secondary backdrop-blur">
@@ -103,6 +145,25 @@ const Index = () => {
               <span className="size-1.5 rounded-full bg-primary-foreground" />
             </button>
           ))}
+          {spots.map((spot) => (
+            <div
+              key={spot.id}
+              className="pointer-events-none absolute z-10 -translate-x-1/2 -translate-y-1/2"
+              style={{ left: `${spot.x}%`, top: `${spot.y}%` }}
+            >
+              <div className="grid size-7 place-items-center rounded-full border-2 border-espresso bg-cream text-base shadow-panel" aria-label={spot.name}>
+                <span aria-hidden>{spotEmoji(spot.icon)}</span>
+              </div>
+            </div>
+          ))}
+          <button
+            onClick={(event) => { event.stopPropagation(); openAddDialog(pointer); }}
+            onPointerDown={(event) => event.stopPropagation()}
+            className="absolute bottom-24 right-4 z-20 grid size-12 place-items-center rounded-full bg-sun-gradient text-espresso shadow-sun transition-transform hover:scale-105"
+            aria-label="Add a custom sunny spot"
+          >
+            <Plus className="size-5" />
+          </button>
           <div className="absolute bottom-4 left-4 right-4 z-10 flex items-center justify-between gap-3 rounded-2xl border border-butter/25 bg-espresso/90 p-3 text-secondary backdrop-blur-md">
             <div className="min-w-0">
               <p className="truncate text-sm font-semibold">{activeBar.name}</p>
@@ -146,8 +207,14 @@ const Index = () => {
           )}
         </section>
 
-        <BottomNav favoritesCount={favorites.length} />
+        <BottomNav favoritesCount={favorites.length + spots.length} />
       </section>
+      <AddSpotDialog
+        open={spotDialogOpen}
+        onOpenChange={setSpotDialogOpen}
+        position={pendingPosition}
+        onSubmit={handleSubmitSpot}
+      />
     </main>
   );
 };
