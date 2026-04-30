@@ -7,7 +7,7 @@ import { AddSpotDialog } from "@/components/AddSpotDialog";
 import { useFavorites } from "@/hooks/use-favorites";
 import { useCustomSpots } from "@/hooks/use-custom-spots";
 import { Filter, bars, filters, stateCopy } from "@/lib/bars";
-import { spotEmoji } from "@/lib/spots";
+import { spotEmoji, type CustomSpot } from "@/lib/spots";
 import { cn } from "@/lib/utils";
 
 const hourly = [
@@ -26,21 +26,34 @@ const Index = () => {
   const [expanded, setExpanded] = useState(true);
   const [pointer, setPointer] = useState({ x: 56, y: 42 });
   const { favorites, toggleFavorite } = useFavorites();
-  const { spots, addSpot } = useCustomSpots();
+  const { spots, addSpot, removeSpot, updateSpot } = useCustomSpots();
   const [spotDialogOpen, setSpotDialogOpen] = useState(false);
   const [pendingPosition, setPendingPosition] = useState<{ x: number; y: number } | null>(null);
+  const [editingSpot, setEditingSpot] = useState<CustomSpot | null>(null);
   const pressTimer = useRef<number | null>(null);
   const pressMoved = useRef(false);
 
   const openAddDialog = (position: { x: number; y: number } | null) => {
+    setEditingSpot(null);
     setPendingPosition(position ?? { x: 50, y: 50 });
     setSpotDialogOpen(true);
   };
 
-  const handleSubmitSpot = (values: { name: string; note: string; icon: import("@/lib/spots").SpotIcon }) => {
-    const position = pendingPosition ?? { x: 50, y: 50 };
-    addSpot({ ...values, x: position.x, y: position.y });
+  const openEditDialog = (spot: CustomSpot) => {
+    setEditingSpot(spot);
     setPendingPosition(null);
+    setSpotDialogOpen(true);
+  };
+
+  const handleSubmitSpot = (values: { name: string; note: string; icon: import("@/lib/spots").SpotIcon }) => {
+    if (editingSpot) {
+      updateSpot(editingSpot.id, values);
+      setEditingSpot(null);
+    } else {
+      const position = pendingPosition ?? { x: 50, y: 50 };
+      addSpot({ ...values, x: position.x, y: position.y });
+      setPendingPosition(null);
+    }
   };
 
   const visibleBars = useMemo(() => {
@@ -146,15 +159,22 @@ const Index = () => {
             </button>
           ))}
           {spots.map((spot) => (
-            <div
+            <button
               key={spot.id}
-              className="pointer-events-none absolute z-10 -translate-x-1/2 -translate-y-1/2"
+              type="button"
+              onClick={(event) => {
+                event.stopPropagation();
+                openEditDialog(spot);
+              }}
+              onPointerDown={(event) => event.stopPropagation()}
+              className="absolute z-10 -translate-x-1/2 -translate-y-1/2 transition-transform hover:scale-110"
               style={{ left: `${spot.x}%`, top: `${spot.y}%` }}
+              aria-label={`Edit ${spot.name}`}
             >
               <div className="grid size-7 place-items-center rounded-full border-2 border-espresso bg-cream text-base shadow-panel" aria-label={spot.name}>
                 <span aria-hidden>{spotEmoji(spot.icon)}</span>
               </div>
-            </div>
+            </button>
           ))}
           <button
             onClick={(event) => { event.stopPropagation(); openAddDialog(pointer); }}
@@ -214,6 +234,9 @@ const Index = () => {
         onOpenChange={setSpotDialogOpen}
         position={pendingPosition}
         onSubmit={handleSubmitSpot}
+        mode={editingSpot ? "edit" : "create"}
+        initialSpot={editingSpot}
+        onDelete={editingSpot ? () => removeSpot(editingSpot.id) : undefined}
       />
     </main>
   );
