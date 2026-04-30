@@ -48,7 +48,7 @@ const stateCopy = {
 const Index = () => {
   const [filter, setFilter] = useState<Filter>("all");
   const [selected, setSelected] = useState(0);
-  const [expanded, setExpanded] = useState(false);
+  const [expanded, setExpanded] = useState(true);
   const [pointer, setPointer] = useState({ x: 56, y: 42 });
 
   const visibleBars = useMemo(() => {
@@ -112,7 +112,7 @@ const Index = () => {
         </nav>
 
         <section
-          className={cn("relative overflow-hidden bg-map-gradient map-streets transition-[height] duration-500", expanded ? "h-[350px]" : "h-[205px]")}
+          className={cn("relative overflow-hidden bg-map-gradient map-streets transition-[height] duration-500", expanded ? "h-[430px]" : "h-[250px]")}
           style={{ "--pointer-x": `${pointer.x}%`, "--pointer-y": `${pointer.y}%` } as React.CSSProperties}
           onPointerMove={(event) => {
             const rect = event.currentTarget.getBoundingClientRect();
@@ -126,7 +126,7 @@ const Index = () => {
             {expanded ? <ChevronDown className="size-4" /> : <Navigation className="size-4" />}
           </button>
           {bars.map((bar) => (
-            <button key={bar.id} onClick={() => setSelected(bar.id)} className={cn("absolute z-10 grid size-5 -translate-x-1/2 -translate-y-1/2 place-items-center rounded-full border-[3px] border-espresso transition-all hover:scale-125", stateCopy[bar.state].dot, stateCopy[bar.state].glow, selected === bar.id && "scale-150 ring-4 ring-sun/30")} style={{ left: `${bar.x}%`, top: `${bar.y}%` }} aria-label={`Select ${bar.name}`}>
+            <button key={bar.id} onClick={() => { setSelected(bar.id); setExpanded(false); }} className={cn("absolute z-10 grid size-5 -translate-x-1/2 -translate-y-1/2 place-items-center rounded-full border-[3px] border-espresso transition-all hover:scale-125", stateCopy[bar.state].dot, stateCopy[bar.state].glow, selected === bar.id && "scale-150 ring-4 ring-sun/30")} style={{ left: `${bar.x}%`, top: `${bar.y}%` }} aria-label={`Select ${bar.name}`}>
               <span className="size-1.5 rounded-full bg-primary-foreground" />
             </button>
           ))}
@@ -152,7 +152,7 @@ const Index = () => {
               const width = ((bar.end - bar.start) / 11) * 100;
               const now = ((nowHour - 11) / 11) * 100;
               return (
-                <article key={bar.id} onClick={() => setSelected(bar.id)} className={cn("cursor-pointer rounded-2xl border bg-card p-3 transition-all hover:-translate-y-0.5 hover:shadow-sun", selected === bar.id ? "border-primary shadow-sun" : "border-border/80")}> 
+                <article key={bar.id} onClick={() => { setSelected(bar.id); setExpanded(false); }} className={cn("cursor-pointer rounded-2xl border bg-card p-3 transition-all hover:-translate-y-0.5 hover:shadow-sun", selected === bar.id ? "border-primary shadow-sun" : "border-border/80")}> 
                   <div className="flex items-start justify-between gap-3">
                     <div className="min-w-0">
                       <h2 className="truncate text-base font-semibold">{bar.name}</h2>
