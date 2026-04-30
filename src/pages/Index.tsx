@@ -1,23 +1,11 @@
-import { useEffect, useMemo, useState } from "react";
-import { ChevronDown, Heart, LocateFixed, MapPin, Navigation, Search, Sparkles, Sun, Sunset, X } from "lucide-react";
+import { useMemo, useState } from "react";
+import { ChevronDown, Heart, LocateFixed, Navigation, Search, Sparkles, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { BarCard } from "@/components/BarCard";
+import { BottomNav } from "@/components/BottomNav";
+import { useFavorites } from "@/hooks/use-favorites";
+import { Filter, bars, filters, stateCopy } from "@/lib/bars";
 import { cn } from "@/lib/utils";
-
-type SunState = "sun" | "soon" | "shade";
-type Filter = "all" | "sun" | "soon" | "cheap";
-type View = "discover" | "favorites";
-
-const favoriteStorageKey = "sunny-bars-favorites";
-
-const nowHour = 16.35;
-
-const bars = [
-  { id: 0, name: "Toldboden", area: "Harbour terrace", state: "sun" as SunState, beer: 65, dist: "0.4 km", start: 14.25, end: 20.5, x: 38, y: 34, vibe: "Waterfront spritz" },
-  { id: 1, name: "Halvandet", area: "Refshaleøen", state: "sun" as SunState, beer: 75, dist: "1.2 km", start: 15.0, end: 21.25, x: 58, y: 54, vibe: "Golden hour deck" },
-  { id: 2, name: "Palægade Bar", area: "Indre By", state: "soon" as SunState, beer: 72, dist: "0.8 km", start: 17.25, end: 19.75, x: 27, y: 63, vibe: "Street-side apéro" },
-  { id: 3, name: "Nørreport Øl", area: "Market edge", state: "shade" as SunState, beer: 60, dist: "1.5 km", start: 12.25, end: 15.25, x: 67, y: 27, vibe: "Easy meetup" },
-  { id: 4, name: "Christiania Pub", area: "Canal walk", state: "soon" as SunState, beer: 55, dist: "2.1 km", start: 17.75, end: 21.0, x: 44, y: 75, vibe: "Late sun tables" },
-];
 
 const hourly = [
   { time: "14", pct: 74, icon: "🌤️" },
@@ -29,56 +17,22 @@ const hourly = [
   { time: "20", pct: 42, icon: "🌥️" },
 ];
 
-const filters: { key: Filter; label: string }[] = [
-  { key: "all", label: "All bars" },
-  { key: "sun", label: "Sun now" },
-  { key: "soon", label: "Sun later" },
-  { key: "cheap", label: "Cheap" },
-];
-
-const formatHour = (hour: number) => {
-  const h = Math.floor(hour);
-  const m = Math.round((hour - h) * 60);
-  return `${h}:${String(m).padStart(2, "0")}`;
-};
-
-const stateCopy = {
-  sun: { label: "Sunny now", tone: "bg-sun text-espresso", dot: "bg-sun", glow: "animate-sun-pulse" },
-  soon: { label: "Sun later", tone: "bg-flame text-primary-foreground", dot: "bg-flame", glow: "" },
-  shade: { label: "Mostly shade", tone: "bg-shade text-primary-foreground", dot: "bg-coral", glow: "" },
-};
-
 const Index = () => {
-  const [view, setView] = useState<View>("discover");
   const [filter, setFilter] = useState<Filter>("all");
   const [selected, setSelected] = useState(0);
   const [expanded, setExpanded] = useState(true);
   const [pointer, setPointer] = useState({ x: 56, y: 42 });
-  const [favorites, setFavorites] = useState<number[]>([]);
-
-  useEffect(() => {
-    const stored = window.localStorage.getItem(favoriteStorageKey);
-    if (stored) setFavorites(JSON.parse(stored));
-  }, []);
-
-  useEffect(() => {
-    window.localStorage.setItem(favoriteStorageKey, JSON.stringify(favorites));
-  }, [favorites]);
-
-  const toggleFavorite = (id: number) => {
-    setFavorites((current) => current.includes(id) ? current.filter((item) => item !== id) : [...current, id]);
-  };
+  const { favorites, toggleFavorite } = useFavorites();
 
   const visibleBars = useMemo(() => {
     return bars.filter((bar) => {
-      if (view === "favorites" && !favorites.includes(bar.id)) return false;
       if (filter === "all") return true;
       if (filter === "cheap") return bar.beer <= 60;
       return bar.state === filter;
     });
-  }, [favorites, filter, view]);
+  }, [filter]);
 
-  const activeBar = visibleBars.find((bar) => bar.id === selected) ?? visibleBars[0] ?? bars.find((bar) => bar.id === selected) ?? bars[0];
+  const activeBar = visibleBars.find((bar) => bar.id === selected) ?? visibleBars[0] ?? bars[0];
 
   return (
     <main className="min-h-screen bg-app-gradient px-4 py-4 text-foreground sm:py-8">
@@ -113,7 +67,7 @@ const Index = () => {
 
           <div className="mt-3 flex gap-2 overflow-x-auto pb-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
             {hourly.map((hour) => (
-              <div key={hour.time} className={cn("min-w-14 rounded-xl border border-butter/20 bg-cream/8 px-3 py-2 text-center", hour.time === "16" && "border-sun bg-sun/15")}> 
+              <div key={hour.time} className={cn("min-w-14 rounded-xl border border-butter/20 bg-cream/8 px-3 py-2 text-center", hour.time === "16" && "border-sun bg-sun/15")}>
                 <p className="text-[0.62rem] text-muted-foreground">{hour.time}:00</p>
                 <p className="text-base leading-5">{hour.icon}</p>
                 <p className="text-[0.68rem] font-semibold text-secondary">{hour.pct}%</p>
@@ -123,14 +77,6 @@ const Index = () => {
         </div>
 
         <nav className="flex gap-2 overflow-x-auto bg-espresso-soft px-5 pb-4 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden" aria-label="Bar filters">
-          {([
-            { key: "discover" as View, label: "Discover" },
-            { key: "favorites" as View, label: `Favorites ${favorites.length}` },
-          ]).map((item) => (
-            <button key={item.key} onClick={() => setView(item.key)} className={cn("whitespace-nowrap rounded-full border px-3 py-1.5 text-xs font-semibold transition-all", view === item.key ? "border-primary bg-primary text-primary-foreground shadow-sun" : "border-butter/35 text-secondary hover:bg-cream/10")}>
-              {item.label}
-            </button>
-          ))}
           {filters.map((item) => (
             <button key={item.key} onClick={() => setFilter(item.key)} className={cn("whitespace-nowrap rounded-full border px-3 py-1.5 text-xs font-semibold transition-all", filter === item.key ? "border-primary bg-primary text-primary-foreground shadow-sun" : "border-butter/35 text-secondary hover:bg-cream/10")}>
               {item.label}
@@ -177,56 +123,33 @@ const Index = () => {
           </div>
 
           <div className="mt-3 space-y-2">
-            {visibleBars.map((bar) => {
-              const start = ((bar.start - 11) / 11) * 100;
-              const width = ((bar.end - bar.start) / 11) * 100;
-              const now = ((nowHour - 11) / 11) * 100;
-              return (
-                <article key={bar.id} onClick={() => { setSelected(bar.id); setExpanded(false); }} className={cn("cursor-pointer rounded-2xl border bg-card p-3 transition-all hover:-translate-y-0.5 hover:shadow-sun", selected === bar.id ? "border-primary shadow-sun" : "border-border/80")}> 
-                  <div className="flex items-start justify-between gap-3">
-                    <div className="min-w-0">
-                      <h2 className="truncate text-base font-semibold">{bar.name}</h2>
-                      <p className="mt-0.5 text-xs text-muted-foreground">{bar.area} · {bar.vibe}</p>
-                    </div>
-                    <div className="flex shrink-0 items-center gap-2">
-                      <span className={cn("rounded-full px-2 py-1 text-[0.62rem] font-bold", stateCopy[bar.state].tone)}>{stateCopy[bar.state].label}</span>
-                      <button onClick={(event) => { event.stopPropagation(); toggleFavorite(bar.id); }} className={cn("grid size-8 place-items-center rounded-full border border-border bg-background transition-colors", favorites.includes(bar.id) && "border-primary bg-primary text-primary-foreground")} aria-label={favorites.includes(bar.id) ? `Remove ${bar.name} from favorites` : `Save ${bar.name} to favorites`}>
-                        <Heart className={cn("size-4", favorites.includes(bar.id) && "fill-current")} />
-                      </button>
-                    </div>
-                  </div>
-                  <div className="mt-3 flex items-center gap-2">
-                    <SunriseIcon />
-                    <div className="relative h-2 flex-1 overflow-hidden rounded-full bg-muted">
-                      <div className={cn("absolute top-0 h-full rounded-full", stateCopy[bar.state].dot)} style={{ left: `${start}%`, width: `${width}%`, opacity: bar.state === "shade" ? 0.45 : 1 }} />
-                      <div className="absolute -top-1 h-4 w-0.5 rounded-full bg-espresso" style={{ left: `${now}%` }} />
-                    </div>
-                    <Sunset className="size-4 text-flame" />
-                  </div>
-                  <div className="mt-2 flex items-center justify-between text-xs text-muted-foreground">
-                    <span>{formatHour(bar.start)}–{formatHour(bar.end)}</span>
-                    <span className="flex items-center gap-1"><MapPin className="size-3" /> {bar.dist} · {bar.beer} kr</span>
-                  </div>
-                </article>
-              );
-            })}
+            {visibleBars.map((bar) => (
+              <BarCard
+                key={bar.id}
+                bar={bar}
+                selected={selected === bar.id}
+                isFavorite={favorites.includes(bar.id)}
+                onSelect={() => { setSelected(bar.id); setExpanded(false); }}
+                onToggleFavorite={() => toggleFavorite(bar.id)}
+              />
+            ))}
           </div>
 
           {visibleBars.length === 0 && (
             <div className="grid min-h-40 place-items-center rounded-2xl border border-dashed border-border bg-card p-6 text-center">
               <div>
-                {view === "favorites" ? <Heart className="mx-auto mb-2 size-6 text-coral" /> : <X className="mx-auto mb-2 size-6 text-coral" />}
-                <p className="font-semibold">{view === "favorites" ? "No favorite spots yet" : "No sunny matches right now"}</p>
-                <p className="text-sm text-muted-foreground">{view === "favorites" ? "Tap the heart on any bar to bookmark it here." : "Try all bars or check the later sun window."}</p>
+                <X className="mx-auto mb-2 size-6 text-coral" />
+                <p className="font-semibold">No sunny matches right now</p>
+                <p className="text-sm text-muted-foreground">Try all bars or check the later sun window.</p>
               </div>
             </div>
           )}
         </section>
+
+        <BottomNav favoritesCount={favorites.length} />
       </section>
     </main>
   );
 };
-
-const SunriseIcon = () => <Sun className="size-4 text-sun" />;
 
 export default Index;
