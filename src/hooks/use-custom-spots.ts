@@ -55,5 +55,13 @@ export const useCustomSpots = () => {
   const removeSpot = (id: string) =>
     setSpots((current) => current.filter((spot) => spot.id !== id));
 
-  return { spots, addSpot, removeSpot };
+  const updateSpot = (
+    id: string,
+    updates: Partial<Pick<CustomSpot, "name" | "note" | "icon">>,
+  ) =>
+    setSpots((current) =>
+      current.map((spot) => (spot.id === id ? { ...spot, ...updates } : spot)),
+    );
+
+  return { spots, addSpot, removeSpot, updateSpot };
 };

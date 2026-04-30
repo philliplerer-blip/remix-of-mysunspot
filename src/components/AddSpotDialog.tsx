@@ -12,7 +12,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { spotIcons, type SpotIcon } from "@/lib/spots";
+import { spotIcons, type CustomSpot, type SpotIcon } from "@/lib/spots";
 import { cn } from "@/lib/utils";
 
 const spotSchema = z.object({
@@ -33,9 +33,20 @@ export interface AddSpotDialogProps {
   onOpenChange: (open: boolean) => void;
   position: { x: number; y: number } | null;
   onSubmit: (values: { name: string; note: string; icon: SpotIcon }) => void;
+  mode?: "create" | "edit";
+  initialSpot?: CustomSpot | null;
+  onDelete?: () => void;
 }
 
-export const AddSpotDialog = ({ open, onOpenChange, position, onSubmit }: AddSpotDialogProps) => {
+export const AddSpotDialog = ({
+  open,
+  onOpenChange,
+  position,
+  onSubmit,
+  mode = "create",
+  initialSpot = null,
+  onDelete,
+}: AddSpotDialogProps) => {
   const [name, setName] = useState("");
   const [note, setNote] = useState("");
   const [icon, setIcon] = useState<SpotIcon>("bench");
@@ -43,12 +54,12 @@ export const AddSpotDialog = ({ open, onOpenChange, position, onSubmit }: AddSpo
 
   useEffect(() => {
     if (open) {
-      setName("");
-      setNote("");
-      setIcon("bench");
+      setName(initialSpot?.name ?? "");
+      setNote(initialSpot?.note ?? "");
+      setIcon(initialSpot?.icon ?? "bench");
       setError(null);
     }
-  }, [open]);
+  }, [open, initialSpot]);
 
   const handleSubmit = (event: React.FormEvent) => {
     event.preventDefault();
@@ -65,9 +76,13 @@ export const AddSpotDialog = ({ open, onOpenChange, position, onSubmit }: AddSpo
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-sm rounded-3xl border-butter/40 bg-background">
         <DialogHeader>
-          <DialogTitle className="font-display text-xl">Bookmark a sunny spot</DialogTitle>
+          <DialogTitle className="font-display text-xl">
+            {mode === "edit" ? "Edit sunny spot" : "Bookmark a sunny spot"}
+          </DialogTitle>
           <DialogDescription>
-            Save a bench, hill, pier, or any place that catches the sun{position ? " — pinned where you tapped." : "."}
+            {mode === "edit"
+              ? "Update the name, note, or type for this spot."
+              : `Save a bench, hill, pier, or any place that catches the sun${position ? " — pinned where you tapped." : "."}`}
           </DialogDescription>
         </DialogHeader>
         <form onSubmit={handleSubmit} className="space-y-4">
@@ -117,10 +132,25 @@ export const AddSpotDialog = ({ open, onOpenChange, position, onSubmit }: AddSpo
           </div>
           {error && <p className="text-xs font-medium text-coral">{error}</p>}
           <DialogFooter className="gap-2 sm:gap-2">
+            {mode === "edit" && onDelete && (
+              <Button
+                type="button"
+                variant="ghost"
+                className="text-coral hover:text-coral sm:mr-auto"
+                onClick={() => {
+                  onDelete();
+                  onOpenChange(false);
+                }}
+              >
+                Delete
+              </Button>
+            )}
             <Button type="button" variant="ghost" onClick={() => onOpenChange(false)}>
               Cancel
             </Button>
-            <Button type="submit" variant="sun">Save spot</Button>
+            <Button type="submit" variant="sun">
+              {mode === "edit" ? "Save changes" : "Save spot"}
+            </Button>
           </DialogFooter>
         </form>
       </DialogContent>
