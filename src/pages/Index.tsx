@@ -1,10 +1,13 @@
-import { useMemo, useState } from "react";
-import { ChevronDown, LocateFixed, MapPin, Navigation, Plus, Search, Sparkles, Sun, Sunset, X } from "lucide-react";
+import { useEffect, useMemo, useState } from "react";
+import { ChevronDown, Heart, LocateFixed, MapPin, Navigation, Plus, Search, Sparkles, Sun, Sunset, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 
 type SunState = "sun" | "soon" | "shade";
 type Filter = "all" | "sun" | "soon" | "cheap";
+type View = "discover" | "favorites";
+
+const favoriteStorageKey = "sunny-bars-favorites";
 
 const nowHour = 16.35;
 
@@ -46,20 +49,36 @@ const stateCopy = {
 };
 
 const Index = () => {
+  const [view, setView] = useState<View>("discover");
   const [filter, setFilter] = useState<Filter>("all");
   const [selected, setSelected] = useState(0);
   const [expanded, setExpanded] = useState(true);
   const [pointer, setPointer] = useState({ x: 56, y: 42 });
+  const [favorites, setFavorites] = useState<number[]>([]);
+
+  useEffect(() => {
+    const stored = window.localStorage.getItem(favoriteStorageKey);
+    if (stored) setFavorites(JSON.parse(stored));
+  }, []);
+
+  useEffect(() => {
+    window.localStorage.setItem(favoriteStorageKey, JSON.stringify(favorites));
+  }, [favorites]);
+
+  const toggleFavorite = (id: number) => {
+    setFavorites((current) => current.includes(id) ? current.filter((item) => item !== id) : [...current, id]);
+  };
 
   const visibleBars = useMemo(() => {
     return bars.filter((bar) => {
+      if (view === "favorites" && !favorites.includes(bar.id)) return false;
       if (filter === "all") return true;
       if (filter === "cheap") return bar.beer <= 60;
       return bar.state === filter;
     });
-  }, [filter]);
+  }, [favorites, filter, view]);
 
-  const activeBar = bars.find((bar) => bar.id === selected) ?? bars[0];
+  const activeBar = visibleBars.find((bar) => bar.id === selected) ?? visibleBars[0] ?? bars.find((bar) => bar.id === selected) ?? bars[0];
 
   return (
     <main className="min-h-screen bg-app-gradient px-4 py-4 text-foreground sm:py-8">
