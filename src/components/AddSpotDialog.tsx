@@ -57,7 +57,7 @@ export const AddSpotDialog = ({ open, onOpenChange, position, onSubmit }: AddSpo
       setError(result.error.issues[0]?.message ?? "Please check the fields");
       return;
     }
-    onSubmit(result.data);
+    onSubmit(result.data as { name: string; note: string; icon: SpotIcon });
     onOpenChange(false);
   };
 
