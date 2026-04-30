@@ -207,7 +207,7 @@ const Index = () => {
           )}
         </section>
 
-        <BottomNav favoritesCount={favorites.length} />
+        <BottomNav favoritesCount={favorites.length + spots.length} />
       </section>
       <AddSpotDialog
         open={spotDialogOpen}
