@@ -123,6 +123,14 @@ const Index = () => {
         </div>
 
         <nav className="flex gap-2 overflow-x-auto bg-espresso-soft px-5 pb-4 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden" aria-label="Bar filters">
+          {([
+            { key: "discover" as View, label: "Discover" },
+            { key: "favorites" as View, label: `Favorites ${favorites.length}` },
+          ]).map((item) => (
+            <button key={item.key} onClick={() => setView(item.key)} className={cn("whitespace-nowrap rounded-full border px-3 py-1.5 text-xs font-semibold transition-all", view === item.key ? "border-primary bg-primary text-primary-foreground shadow-sun" : "border-butter/35 text-secondary hover:bg-cream/10")}>
+              {item.label}
+            </button>
+          ))}
           {filters.map((item) => (
             <button key={item.key} onClick={() => setFilter(item.key)} className={cn("whitespace-nowrap rounded-full border px-3 py-1.5 text-xs font-semibold transition-all", filter === item.key ? "border-primary bg-primary text-primary-foreground shadow-sun" : "border-butter/35 text-secondary hover:bg-cream/10")}>
               {item.label}
@@ -144,7 +152,7 @@ const Index = () => {
           <button className="absolute right-4 top-4 z-10 rounded-full bg-espresso/85 p-2 text-secondary backdrop-blur transition-transform hover:scale-105" onClick={() => setExpanded((value) => !value)} aria-label={expanded ? "Collapse map" : "Expand map"}>
             {expanded ? <ChevronDown className="size-4" /> : <Navigation className="size-4" />}
           </button>
-          {bars.map((bar) => (
+          {visibleBars.map((bar) => (
             <button key={bar.id} onClick={() => { setSelected(bar.id); setExpanded(false); }} className={cn("absolute z-10 grid size-5 -translate-x-1/2 -translate-y-1/2 place-items-center rounded-full border-[3px] border-espresso transition-all hover:scale-125", stateCopy[bar.state].dot, stateCopy[bar.state].glow, selected === bar.id && "scale-150 ring-4 ring-sun/30")} style={{ left: `${bar.x}%`, top: `${bar.y}%` }} aria-label={`Select ${bar.name}`}>
               <span className="size-1.5 rounded-full bg-primary-foreground" />
             </button>
@@ -154,7 +162,10 @@ const Index = () => {
               <p className="truncate text-sm font-semibold">{activeBar.name}</p>
               <p className="text-xs text-muted-foreground">{activeBar.dist} · {stateCopy[activeBar.state].label}</p>
             </div>
-            <Button variant="sun" size="sm"><Plus className="size-3" /> Add spot</Button>
+            <Button variant={favorites.includes(activeBar.id) ? "glass" : "sun"} size="sm" onClick={() => toggleFavorite(activeBar.id)}>
+              <Heart className={cn("size-3", favorites.includes(activeBar.id) && "fill-current")} />
+              {favorites.includes(activeBar.id) ? "Saved" : "Save"}
+            </Button>
           </div>
         </section>
 
