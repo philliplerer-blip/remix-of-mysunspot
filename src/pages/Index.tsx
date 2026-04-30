@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { ChevronDown, Heart, LocateFixed, MapPin, Navigation, Plus, Search, Sparkles, Sun, Sunset, X } from "lucide-react";
+import { ChevronDown, Heart, LocateFixed, MapPin, Navigation, Search, Sparkles, Sun, Sunset, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 
@@ -188,7 +188,12 @@ const Index = () => {
                       <h2 className="truncate text-base font-semibold">{bar.name}</h2>
                       <p className="mt-0.5 text-xs text-muted-foreground">{bar.area} · {bar.vibe}</p>
                     </div>
-                    <span className={cn("rounded-full px-2 py-1 text-[0.62rem] font-bold", stateCopy[bar.state].tone)}>{stateCopy[bar.state].label}</span>
+                    <div className="flex shrink-0 items-center gap-2">
+                      <span className={cn("rounded-full px-2 py-1 text-[0.62rem] font-bold", stateCopy[bar.state].tone)}>{stateCopy[bar.state].label}</span>
+                      <button onClick={(event) => { event.stopPropagation(); toggleFavorite(bar.id); }} className={cn("grid size-8 place-items-center rounded-full border border-border bg-background transition-colors", favorites.includes(bar.id) && "border-primary bg-primary text-primary-foreground")} aria-label={favorites.includes(bar.id) ? `Remove ${bar.name} from favorites` : `Save ${bar.name} to favorites`}>
+                        <Heart className={cn("size-4", favorites.includes(bar.id) && "fill-current")} />
+                      </button>
+                    </div>
                   </div>
                   <div className="mt-3 flex items-center gap-2">
                     <SunriseIcon />
@@ -210,9 +215,9 @@ const Index = () => {
           {visibleBars.length === 0 && (
             <div className="grid min-h-40 place-items-center rounded-2xl border border-dashed border-border bg-card p-6 text-center">
               <div>
-                <X className="mx-auto mb-2 size-6 text-coral" />
-                <p className="font-semibold">No sunny matches right now</p>
-                <p className="text-sm text-muted-foreground">Try all bars or check the later sun window.</p>
+                {view === "favorites" ? <Heart className="mx-auto mb-2 size-6 text-coral" /> : <X className="mx-auto mb-2 size-6 text-coral" />}
+                <p className="font-semibold">{view === "favorites" ? "No favorite spots yet" : "No sunny matches right now"}</p>
+                <p className="text-sm text-muted-foreground">{view === "favorites" ? "Tap the heart on any bar to bookmark it here." : "Try all bars or check the later sun window."}</p>
               </div>
             </div>
           )}
