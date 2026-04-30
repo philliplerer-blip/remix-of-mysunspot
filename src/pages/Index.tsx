@@ -26,7 +26,7 @@ const Index = () => {
   const [expanded, setExpanded] = useState(true);
   const [pointer, setPointer] = useState({ x: 56, y: 42 });
   const { favorites, toggleFavorite } = useFavorites();
-  const { spots, addSpot, removeSpot } = useCustomSpots();
+  const { spots, addSpot } = useCustomSpots();
   const [spotDialogOpen, setSpotDialogOpen] = useState(false);
   const [pendingPosition, setPendingPosition] = useState<{ x: number; y: number } | null>(null);
   const pressTimer = useRef<number | null>(null);
