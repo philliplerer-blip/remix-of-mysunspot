@@ -1,48 +1,67 @@
-import { useEffect, useState } from "react";
-
-const favoriteStorageKey = "sunny-bars-favorites";
-const favoritesChangeEvent = "sunny-bars-favorites-change";
-
-const readFavorites = (): number[] => {
-  try {
-    const stored = window.localStorage.getItem(favoriteStorageKey);
-    return stored ? JSON.parse(stored) : [];
-  } catch {
-    return [];
-  }
-};
+import { useEffect, useState, useCallback } from "react";
+import { supabase } from "@/integrations/supabase/client";
+import { bars } from "@/lib/bars";
+import { useAuth } from "@/hooks/use-auth";
 
 export const useFavorites = () => {
+  const { user, loading: authLoading } = useAuth();
   const [favorites, setFavorites] = useState<number[]>([]);
   const [hydrated, setHydrated] = useState(false);
 
-  useEffect(() => {
-    setFavorites(readFavorites());
+  const refresh = useCallback(async () => {
+    if (!user) {
+      setFavorites([]);
+      setHydrated(true);
+      return;
+    }
+    const { data } = await supabase
+      .from("favorite_bars")
+      .select("bar_id")
+      .eq("user_id", user.id);
+    setFavorites((data ?? []).map((r) => r.bar_id as number));
     setHydrated(true);
-
-    const sync = () => setFavorites(readFavorites());
-
-    const onStorage = (event: StorageEvent) => {
-      if (event.key === favoriteStorageKey) sync();
-    };
-    const onLocalChange = () => sync();
-
-    window.addEventListener("storage", onStorage);
-    window.addEventListener(favoritesChangeEvent, onLocalChange);
-    return () => {
-      window.removeEventListener("storage", onStorage);
-      window.removeEventListener(favoritesChangeEvent, onLocalChange);
-    };
-  }, []);
+  }, [user]);
 
   useEffect(() => {
-    if (!hydrated) return;
-    window.localStorage.setItem(favoriteStorageKey, JSON.stringify(favorites));
-    window.dispatchEvent(new Event(favoritesChangeEvent));
-  }, [favorites, hydrated]);
+    if (authLoading) return;
+    refresh();
+  }, [refresh, authLoading]);
 
-  const toggleFavorite = (id: number) =>
-    setFavorites((current) => (current.includes(id) ? current.filter((i) => i !== id) : [...current, id]));
+  // Realtime cross-tab sync
+  useEffect(() => {
+    if (!user) return;
+    const channel = supabase
+      .channel(`fav-bars-${user.id}`)
+      .on(
+        "postgres_changes",
+        { event: "*", schema: "public", table: "favorite_bars", filter: `user_id=eq.${user.id}` },
+        () => refresh(),
+      )
+      .subscribe();
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [user, refresh]);
 
-  return { favorites, toggleFavorite };
+  const toggleFavorite = async (id: number) => {
+    if (!user) return;
+    const isFav = favorites.includes(id);
+    if (isFav) {
+      setFavorites((cur) => cur.filter((i) => i !== id));
+      await supabase.from("favorite_bars").delete().eq("user_id", user.id).eq("bar_id", id);
+    } else {
+      const bar = bars.find((b) => b.id === id);
+      if (!bar) return;
+      setFavorites((cur) => [...cur, id]);
+      await supabase.from("favorite_bars").insert({
+        user_id: user.id,
+        bar_id: id,
+        bar_name: bar.name,
+        lat: bar.lat,
+        lng: bar.lng,
+      });
+    }
+  };
+
+  return { favorites, toggleFavorite, hydrated };
 };
