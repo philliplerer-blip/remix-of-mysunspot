@@ -1,17 +1,19 @@
-import { Compass, Heart } from "lucide-react";
+import { Bell, Compass, Heart } from "lucide-react";
 import { NavLink } from "react-router-dom";
 import { cn } from "@/lib/utils";
 
 interface BottomNavProps {
   favoritesCount: number;
+  alertsCount?: number;
 }
 
 const items = [
   { to: "/", label: "Discover", icon: Compass },
   { to: "/favorites", label: "Favorites", icon: Heart },
+  { to: "/alerts", label: "Alerts", icon: Bell },
 ];
 
-export const BottomNav = ({ favoritesCount }: BottomNavProps) => (
+export const BottomNav = ({ favoritesCount, alertsCount = 0 }: BottomNavProps) => (
   <nav className="sticky bottom-0 z-20 mt-auto border-t border-butter/40 bg-espresso/95 px-4 py-2 backdrop-blur" aria-label="Primary">
     <ul className="flex items-stretch justify-around gap-2">
       {items.map(({ to, label, icon: Icon }) => (
@@ -31,6 +33,11 @@ export const BottomNav = ({ favoritesCount }: BottomNavProps) => (
             {label === "Favorites" && favoritesCount > 0 && (
               <span className="absolute right-3 top-1 grid size-4 place-items-center rounded-full bg-flame text-[0.6rem] font-bold text-primary-foreground">
                 {favoritesCount}
+              </span>
+            )}
+            {label === "Alerts" && alertsCount > 0 && (
+              <span className="absolute right-3 top-1 grid size-4 place-items-center rounded-full bg-flame text-[0.6rem] font-bold text-primary-foreground">
+                {alertsCount}
               </span>
             )}
           </NavLink>
