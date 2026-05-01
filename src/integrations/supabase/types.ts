@@ -14,7 +14,165 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      custom_spots: {
+        Row: {
+          alerts_enabled: boolean
+          created_at: string
+          icon: string
+          id: string
+          lat: number
+          lng: number
+          name: string
+          note: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          alerts_enabled?: boolean
+          created_at?: string
+          icon?: string
+          id?: string
+          lat: number
+          lng: number
+          name: string
+          note?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          alerts_enabled?: boolean
+          created_at?: string
+          icon?: string
+          id?: string
+          lat?: number
+          lng?: number
+          name?: string
+          note?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      favorite_bars: {
+        Row: {
+          alerts_enabled: boolean
+          bar_id: number
+          bar_name: string
+          created_at: string
+          id: string
+          lat: number
+          lng: number
+          user_id: string
+        }
+        Insert: {
+          alerts_enabled?: boolean
+          bar_id: number
+          bar_name: string
+          created_at?: string
+          id?: string
+          lat: number
+          lng: number
+          user_id: string
+        }
+        Update: {
+          alerts_enabled?: boolean
+          bar_id?: number
+          bar_name?: string
+          created_at?: string
+          id?: string
+          lat?: number
+          lng?: number
+          user_id?: string
+        }
+        Relationships: []
+      }
+      notification_settings: {
+        Row: {
+          cooldown_minutes: number
+          enabled: boolean
+          quiet_end_hour: number
+          quiet_start_hour: number
+          threshold_pct: number
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          cooldown_minutes?: number
+          enabled?: boolean
+          quiet_end_hour?: number
+          quiet_start_hour?: number
+          threshold_pct?: number
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          cooldown_minutes?: number
+          enabled?: boolean
+          quiet_end_hour?: number
+          quiet_start_hour?: number
+          threshold_pct?: number
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      profiles: {
+        Row: {
+          avatar_url: string | null
+          created_at: string
+          display_name: string | null
+          id: string
+          updated_at: string
+        }
+        Insert: {
+          avatar_url?: string | null
+          created_at?: string
+          display_name?: string | null
+          id: string
+          updated_at?: string
+        }
+        Update: {
+          avatar_url?: string | null
+          created_at?: string
+          display_name?: string | null
+          id?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      sun_alerts: {
+        Row: {
+          id: string
+          read_at: string | null
+          sent_at: string
+          sun_pct: number
+          target_kind: string
+          target_name: string
+          target_ref: string
+          user_id: string
+        }
+        Insert: {
+          id?: string
+          read_at?: string | null
+          sent_at?: string
+          sun_pct: number
+          target_kind: string
+          target_name: string
+          target_ref: string
+          user_id: string
+        }
+        Update: {
+          id?: string
+          read_at?: string | null
+          sent_at?: string
+          sun_pct?: number
+          target_kind?: string
+          target_name?: string
+          target_ref?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
