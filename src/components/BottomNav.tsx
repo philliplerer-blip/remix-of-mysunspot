@@ -29,11 +29,6 @@ export const BottomNav = ({ favoritesCount }: BottomNavProps) => (
           >
             <Icon className="size-5" />
             <span>{label}</span>
-            {to === "/favorites" && favoritesCount > 0 && (
-              <span className="absolute right-3 top-1 grid size-4 place-items-center rounded-full bg-flame text-[0.6rem] font-bold text-primary-foreground">
-                {favoritesCount}
-              </span>
-            )}
           </NavLink>
         </li>
       ))}
