@@ -1,13 +1,14 @@
-import { useMemo, useRef, useState } from "react";
+import { useMemo, useState } from "react";
 import { ChevronDown, Heart, LocateFixed, Navigation, Plus, Search, Sparkles, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { BarCard } from "@/components/BarCard";
 import { BottomNav } from "@/components/BottomNav";
 import { AddSpotDialog } from "@/components/AddSpotDialog";
+import { MapView } from "@/components/MapView";
 import { useFavorites } from "@/hooks/use-favorites";
 import { useCustomSpots } from "@/hooks/use-custom-spots";
 import { Filter, bars, filters, stateCopy } from "@/lib/bars";
-import { spotEmoji, type CustomSpot } from "@/lib/spots";
+import { MAP_CENTER, MAP_SPAN, type CustomSpot, type SpotIcon } from "@/lib/spots";
 import { cn } from "@/lib/utils";
 
 const hourly = [
@@ -24,14 +25,11 @@ const Index = () => {
   const [filter, setFilter] = useState<Filter>("all");
   const [selected, setSelected] = useState(0);
   const [expanded, setExpanded] = useState(true);
-  const [pointer, setPointer] = useState({ x: 56, y: 42 });
   const { favorites, toggleFavorite } = useFavorites();
   const { spots, addSpot, removeSpot, updateSpot } = useCustomSpots();
   const [spotDialogOpen, setSpotDialogOpen] = useState(false);
   const [pendingPosition, setPendingPosition] = useState<{ x: number; y: number } | null>(null);
   const [editingSpot, setEditingSpot] = useState<CustomSpot | null>(null);
-  const pressTimer = useRef<number | null>(null);
-  const pressMoved = useRef(false);
 
   const openAddDialog = (position: { x: number; y: number } | null) => {
     setEditingSpot(null);
@@ -45,7 +43,7 @@ const Index = () => {
     setSpotDialogOpen(true);
   };
 
-  const handleSubmitSpot = (values: { name: string; note: string; icon: import("@/lib/spots").SpotIcon }) => {
+  const handleSubmitSpot = (values: { name: string; note: string; icon: SpotIcon }) => {
     if (editingSpot) {
       updateSpot(editingSpot.id, values);
       setEditingSpot(null);
@@ -54,6 +52,16 @@ const Index = () => {
       addSpot({ ...values, x: position.x, y: position.y });
       setPendingPosition(null);
     }
+  };
+
+  const handleMapLongPress = (latLng: { lat: number; lng: number }) => {
+    // Convert lat/lng → x/y so addSpot stores both consistently
+    const x = ((latLng.lng - MAP_CENTER.lng) / MAP_SPAN.lng + 0.5) * 100;
+    const y = (0.5 - (latLng.lat - MAP_CENTER.lat) / MAP_SPAN.lat) * 100;
+    openAddDialog({
+      x: Math.max(0, Math.min(100, x)),
+      y: Math.max(0, Math.min(100, y)),
+    });
   };
 
   const visibleBars = useMemo(() => {
@@ -117,67 +125,24 @@ const Index = () => {
         </nav>
 
         <section
-          className={cn("relative overflow-hidden bg-map-gradient map-streets transition-[height] duration-500", expanded ? "h-[430px]" : "h-[250px]")}
-          style={{ "--pointer-x": `${pointer.x}%`, "--pointer-y": `${pointer.y}%` } as React.CSSProperties}
-          onPointerMove={(event) => {
-            const rect = event.currentTarget.getBoundingClientRect();
-            setPointer({ x: ((event.clientX - rect.left) / rect.width) * 100, y: ((event.clientY - rect.top) / rect.height) * 100 });
-            pressMoved.current = true;
-          }}
-          onPointerDown={(event) => {
-            pressMoved.current = false;
-            const rect = event.currentTarget.getBoundingClientRect();
-            const x = ((event.clientX - rect.left) / rect.width) * 100;
-            const y = ((event.clientY - rect.top) / rect.height) * 100;
-            if (pressTimer.current) window.clearTimeout(pressTimer.current);
-            pressTimer.current = window.setTimeout(() => {
-              if (!pressMoved.current) openAddDialog({ x, y });
-            }, 550);
-          }}
-          onPointerUp={() => {
-            if (pressTimer.current) {
-              window.clearTimeout(pressTimer.current);
-              pressTimer.current = null;
-            }
-          }}
-          onPointerLeave={() => {
-            if (pressTimer.current) {
-              window.clearTimeout(pressTimer.current);
-              pressTimer.current = null;
-            }
-          }}
+          className={cn("relative overflow-hidden bg-espresso transition-[height] duration-500", expanded ? "h-[430px]" : "h-[250px]")}
         >
+          <MapView
+            visibleBars={visibleBars}
+            spots={spots}
+            selectedBarId={activeBar.id}
+            onSelectBar={(id) => { setSelected(id); setExpanded(false); }}
+            onEditSpot={(spot) => openEditDialog(spot)}
+            onLongPress={handleMapLongPress}
+          />
           <div className="absolute left-4 top-4 z-10 flex items-center gap-1 rounded-md bg-espresso/85 px-3 py-1.5 text-xs font-medium text-secondary backdrop-blur">
             <LocateFixed className="size-3" /> Indre By, Copenhagen
           </div>
           <button className="absolute right-4 top-4 z-10 rounded-full bg-espresso/85 p-2 text-secondary backdrop-blur transition-transform hover:scale-105" onClick={() => setExpanded((value) => !value)} aria-label={expanded ? "Collapse map" : "Expand map"}>
             {expanded ? <ChevronDown className="size-4" /> : <Navigation className="size-4" />}
           </button>
-          {visibleBars.map((bar) => (
-            <button key={bar.id} onClick={() => { setSelected(bar.id); setExpanded(false); }} className={cn("absolute z-10 grid size-5 -translate-x-1/2 -translate-y-1/2 place-items-center rounded-full border-[3px] border-espresso transition-all hover:scale-125", stateCopy[bar.state].dot, stateCopy[bar.state].glow, selected === bar.id && "scale-150 ring-4 ring-sun/30")} style={{ left: `${bar.x}%`, top: `${bar.y}%` }} aria-label={`Select ${bar.name}`}>
-              <span className="size-1.5 rounded-full bg-primary-foreground" />
-            </button>
-          ))}
-          {spots.map((spot) => (
-            <button
-              key={spot.id}
-              type="button"
-              onClick={(event) => {
-                event.stopPropagation();
-                openEditDialog(spot);
-              }}
-              onPointerDown={(event) => event.stopPropagation()}
-              className="absolute z-10 -translate-x-1/2 -translate-y-1/2 transition-transform hover:scale-110"
-              style={{ left: `${spot.x}%`, top: `${spot.y}%` }}
-              aria-label={`Edit ${spot.name}`}
-            >
-              <div className="grid size-7 place-items-center rounded-full border-2 border-espresso bg-cream text-base shadow-panel" aria-label={spot.name}>
-                <span aria-hidden>{spotEmoji(spot.icon)}</span>
-              </div>
-            </button>
-          ))}
           <button
-            onClick={(event) => { event.stopPropagation(); openAddDialog(pointer); }}
+            onClick={(event) => { event.stopPropagation(); openAddDialog(null); }}
             onPointerDown={(event) => event.stopPropagation()}
             className="absolute bottom-24 right-4 z-20 grid size-12 place-items-center rounded-full bg-sun-gradient text-espresso shadow-sun transition-transform hover:scale-105"
             aria-label="Add a custom sunny spot"
