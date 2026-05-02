@@ -69,7 +69,8 @@ export const MapView = ({
           return;
         }
         const loader = new Loader({ apiKey, version: "weekly" });
-        const { Map } = await loader.importLibrary("maps");
+        await loader.load();
+        const { Map } = (await google.maps.importLibrary("maps")) as google.maps.MapsLibrary;
         if (cancelled || !containerRef.current) return;
         const map = new Map(containerRef.current, {
           center: MAP_CENTER,
