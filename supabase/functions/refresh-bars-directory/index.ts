@@ -1,5 +1,8 @@
-// Refreshes the bars_directory table from Google Places API (Nearby Search + Place Details)
+// Refreshes the bars_directory table from Google Places API (NEW v1)
 // Area: Copenhagen city center, ~3km radius
+// Uses Places API (New) — https://places.googleapis.com — which exposes
+// the native `outdoorSeating` boolean. Falls back to keyword inference
+// from editorialSummary / reviews when the API field is missing.
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.45.0";
 
 const corsHeaders = {
@@ -17,59 +20,74 @@ const OUTDOOR_KEYWORDS = [
   "udeservering", "garden", "courtyard", "sidewalk",
 ];
 
-interface PlaceLite {
-  place_id: string;
-  name: string;
-  vicinity?: string;
-  formatted_address?: string;
-  geometry: { location: { lat: number; lng: number } };
+interface PlaceV1 {
+  id: string;
+  displayName?: { text?: string };
+  formattedAddress?: string;
+  shortFormattedAddress?: string;
+  location?: { latitude: number; longitude: number };
   rating?: number;
-  user_ratings_total?: number;
-  price_level?: number;
+  userRatingCount?: number;
+  priceLevel?: string; // PRICE_LEVEL_MODERATE etc.
   types?: string[];
+  outdoorSeating?: boolean;
+  editorialSummary?: { text?: string };
+  reviews?: { text?: { text?: string } }[];
 }
 
 const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
 
-async function nearbySearch(apiKey: string): Promise<PlaceLite[]> {
-  const all: PlaceLite[] = [];
-  let url =
-    `https://maps.googleapis.com/maps/api/place/nearbysearch/json` +
-    `?location=${CENTER.lat},${CENTER.lng}&radius=${RADIUS_M}&type=bar&key=${apiKey}`;
+const FIELD_MASK = [
+  "places.id",
+  "places.displayName",
+  "places.formattedAddress",
+  "places.shortFormattedAddress",
+  "places.location",
+  "places.rating",
+  "places.userRatingCount",
+  "places.priceLevel",
+  "places.types",
+  "places.outdoorSeating",
+  "places.editorialSummary",
+  "places.reviews",
+  "nextPageToken",
+].join(",");
 
+async function searchNearby(apiKey: string): Promise<PlaceV1[]> {
+  const all: PlaceV1[] = [];
+  let pageToken: string | undefined;
   for (let page = 0; page < 3; page++) {
-    const res = await fetch(url);
+    const body: Record<string, unknown> = {
+      includedTypes: ["bar"],
+      maxResultCount: 20,
+      locationRestriction: {
+        circle: {
+          center: { latitude: CENTER.lat, longitude: CENTER.lng },
+          radius: RADIUS_M,
+        },
+      },
+    };
+    if (pageToken) body.pageToken = pageToken;
+
+    const res = await fetch("https://places.googleapis.com/v1/places:searchNearby", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "X-Goog-Api-Key": apiKey,
+        "X-Goog-FieldMask": FIELD_MASK,
+      },
+      body: JSON.stringify(body),
+    });
     const json = await res.json();
-    if (json.status !== "OK" && json.status !== "ZERO_RESULTS") {
-      throw new Error(`Nearby search failed: ${json.status} ${json.error_message ?? ""}`);
+    if (!res.ok) {
+      throw new Error(`Places searchNearby failed (${res.status}): ${JSON.stringify(json)}`);
     }
-    all.push(...(json.results ?? []));
-    if (!json.next_page_token) break;
-    // Google requires a short delay before next_page_token becomes valid
-    await sleep(2200);
-    url =
-      `https://maps.googleapis.com/maps/api/place/nearbysearch/json` +
-      `?pagetoken=${json.next_page_token}&key=${apiKey}`;
+    all.push(...((json.places ?? []) as PlaceV1[]));
+    if (!json.nextPageToken) break;
+    pageToken = json.nextPageToken;
+    await sleep(2000);
   }
   return all;
-}
-
-async function placeDetails(apiKey: string, placeId: string) {
-  const url =
-    `https://maps.googleapis.com/maps/api/place/details/json` +
-    `?place_id=${placeId}` +
-    `&fields=outdoor_seating,editorial_summary,reviews,formatted_address,name` +
-    `&key=${apiKey}`;
-  const res = await fetch(url);
-  const json = await res.json();
-  if (json.status !== "OK") return null;
-  return json.result as {
-    outdoor_seating?: boolean;
-    editorial_summary?: { overview?: string };
-    reviews?: { text?: string }[];
-    formatted_address?: string;
-    name?: string;
-  };
 }
 
 function inferOutdoorFromText(text: string): string[] {
@@ -93,27 +111,25 @@ Deno.serve(async (req) => {
       Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!,
     );
 
-    const places = await nearbySearch(apiKey);
+    const places = await searchNearby(apiKey);
     console.log(`Nearby search returned ${places.length} bars`);
 
     const rows: Array<Record<string, unknown>> = [];
 
     for (const p of places) {
-      const details = await placeDetails(apiKey, p.place_id);
-
       let outdoor: boolean | null = null;
       let source: "api" | "keyword" | "none" = "none";
       let matched: string[] = [];
 
-      if (typeof details?.outdoor_seating === "boolean") {
-        outdoor = details.outdoor_seating;
+      if (typeof p.outdoorSeating === "boolean") {
+        outdoor = p.outdoorSeating;
         source = "api";
       } else {
         const haystack = [
-          details?.editorial_summary?.overview ?? "",
-          ...(details?.reviews?.slice(0, 5).map((r) => r.text ?? "") ?? []),
+          p.editorialSummary?.text ?? "",
+          ...(p.reviews?.slice(0, 5).map((r) => r.text?.text ?? "") ?? []),
           (p.types ?? []).join(" "),
-          p.name,
+          p.displayName?.text ?? "",
         ].join(" \n ");
         matched = inferOutdoorFromText(haystack);
         if (matched.length > 0) {
@@ -122,24 +138,30 @@ Deno.serve(async (req) => {
         }
       }
 
+      // priceLevel comes back as PRICE_LEVEL_MODERATE etc. in v1
+      const priceMap: Record<string, number> = {
+        PRICE_LEVEL_FREE: 0,
+        PRICE_LEVEL_INEXPENSIVE: 1,
+        PRICE_LEVEL_MODERATE: 2,
+        PRICE_LEVEL_EXPENSIVE: 3,
+        PRICE_LEVEL_VERY_EXPENSIVE: 4,
+      };
+
       rows.push({
-        google_place_id: p.place_id,
-        name: details?.name ?? p.name,
-        address: details?.formatted_address ?? p.vicinity ?? null,
-        lat: p.geometry.location.lat,
-        lng: p.geometry.location.lng,
+        google_place_id: p.id,
+        name: p.displayName?.text ?? "Unknown",
+        address: p.formattedAddress ?? p.shortFormattedAddress ?? null,
+        lat: p.location?.latitude ?? 0,
+        lng: p.location?.longitude ?? 0,
         rating: p.rating ?? null,
-        user_ratings_total: p.user_ratings_total ?? null,
-        price_level: p.price_level ?? null,
+        user_ratings_total: p.userRatingCount ?? null,
+        price_level: p.priceLevel ? priceMap[p.priceLevel] ?? null : null,
         outdoor_seating: outdoor,
         outdoor_source: source,
         types: p.types ?? [],
         keywords_matched: matched,
         last_refreshed_at: new Date().toISOString(),
       });
-
-      // light pacing to stay under QPS
-      await sleep(60);
     }
 
     if (rows.length > 0) {
