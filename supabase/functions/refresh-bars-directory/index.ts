@@ -50,44 +50,48 @@ const FIELD_MASK = [
   "places.outdoorSeating",
   "places.editorialSummary",
   "places.reviews",
-  "nextPageToken",
 ].join(",");
 
 async function searchNearby(apiKey: string): Promise<PlaceV1[]> {
-  const all: PlaceV1[] = [];
-  let pageToken: string | undefined;
-  for (let page = 0; page < 3; page++) {
-    const body: Record<string, unknown> = {
-      includedTypes: ["bar"],
-      maxResultCount: 20,
-      locationRestriction: {
-        circle: {
-          center: { latitude: CENTER.lat, longitude: CENTER.lng },
-          radius: RADIUS_M,
-        },
-      },
-    };
-    if (pageToken) body.pageToken = pageToken;
+  // Places API (New) searchNearby returns up to 20 results per call
+  // and does not support pagination. To get more coverage, we issue
+  // multiple calls over a 3x3 sub-grid covering the radius.
+  const all = new Map<string, PlaceV1>();
+  const offsets = [-0.012, 0, 0.012]; // ~1.3 km in lat / lng at CPH latitude
+  const subRadius = 1500;
 
-    const res = await fetch("https://places.googleapis.com/v1/places:searchNearby", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "X-Goog-Api-Key": apiKey,
-        "X-Goog-FieldMask": FIELD_MASK,
-      },
-      body: JSON.stringify(body),
-    });
-    const json = await res.json();
-    if (!res.ok) {
-      throw new Error(`Places searchNearby failed (${res.status}): ${JSON.stringify(json)}`);
+  for (const dLat of offsets) {
+    for (const dLng of offsets) {
+      const body = {
+        includedTypes: ["bar"],
+        maxResultCount: 20,
+        locationRestriction: {
+          circle: {
+            center: { latitude: CENTER.lat + dLat, longitude: CENTER.lng + dLng },
+            radius: subRadius,
+          },
+        },
+      };
+      const res = await fetch("https://places.googleapis.com/v1/places:searchNearby", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "X-Goog-Api-Key": apiKey,
+          "X-Goog-FieldMask": FIELD_MASK,
+        },
+        body: JSON.stringify(body),
+      });
+      const json = await res.json();
+      if (!res.ok) {
+        throw new Error(`Places searchNearby failed (${res.status}): ${JSON.stringify(json)}`);
+      }
+      for (const place of (json.places ?? []) as PlaceV1[]) {
+        if (place.id) all.set(place.id, place);
+      }
+      await sleep(120);
     }
-    all.push(...((json.places ?? []) as PlaceV1[]));
-    if (!json.nextPageToken) break;
-    pageToken = json.nextPageToken;
-    await sleep(2000);
   }
-  return all;
+  return Array.from(all.values());
 }
 
 function inferOutdoorFromText(text: string): string[] {
