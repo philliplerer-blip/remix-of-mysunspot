@@ -1,3 +1,6 @@
 project_id = "pqrvemaaokhumfcnohfe"
 [functions.check-sunny-spots]
 verify_jwt = false
+
+[functions.maps-config]
+verify_jwt = false
