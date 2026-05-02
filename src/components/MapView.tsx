@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { Loader } from "@googlemaps/js-api-loader";
+import { setOptions, importLibrary } from "@googlemaps/js-api-loader";
 import { supabase } from "@/integrations/supabase/client";
 import { bars, stateCopy, type Bar } from "@/lib/bars";
 import { spotEmoji, type CustomSpot, MAP_CENTER } from "@/lib/spots";
@@ -68,9 +68,8 @@ export const MapView = ({
           setError("Google Maps API key not configured");
           return;
         }
-        const loader = new Loader({ apiKey, version: "weekly" });
-        await loader.load();
-        const { Map } = (await google.maps.importLibrary("maps")) as google.maps.MapsLibrary;
+        setOptions({ key: apiKey, v: "weekly" });
+        const { Map } = await importLibrary("maps");
         if (cancelled || !containerRef.current) return;
         const map = new Map(containerRef.current, {
           center: MAP_CENTER,
