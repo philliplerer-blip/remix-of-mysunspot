@@ -14,6 +14,63 @@ export type Database = {
   }
   public: {
     Tables: {
+      bars_directory: {
+        Row: {
+          address: string | null
+          created_at: string
+          google_place_id: string
+          id: string
+          keywords_matched: string[] | null
+          last_refreshed_at: string
+          lat: number
+          lng: number
+          name: string
+          outdoor_seating: boolean | null
+          outdoor_source: string
+          price_level: number | null
+          rating: number | null
+          types: string[] | null
+          updated_at: string
+          user_ratings_total: number | null
+        }
+        Insert: {
+          address?: string | null
+          created_at?: string
+          google_place_id: string
+          id?: string
+          keywords_matched?: string[] | null
+          last_refreshed_at?: string
+          lat: number
+          lng: number
+          name: string
+          outdoor_seating?: boolean | null
+          outdoor_source?: string
+          price_level?: number | null
+          rating?: number | null
+          types?: string[] | null
+          updated_at?: string
+          user_ratings_total?: number | null
+        }
+        Update: {
+          address?: string | null
+          created_at?: string
+          google_place_id?: string
+          id?: string
+          keywords_matched?: string[] | null
+          last_refreshed_at?: string
+          lat?: number
+          lng?: number
+          name?: string
+          outdoor_seating?: boolean | null
+          outdoor_source?: string
+          price_level?: number | null
+          rating?: number | null
+          types?: string[] | null
+          updated_at?: string
+          user_ratings_total?: number | null
+        }
+        Relationships: []
+      }
       custom_spots: {
         Row: {
           alerts_enabled: boolean
