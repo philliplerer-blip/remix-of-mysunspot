@@ -4,3 +4,6 @@ verify_jwt = false
 
 [functions.maps-config]
 verify_jwt = false
+
+[functions.refresh-bars-directory]
+verify_jwt = false
