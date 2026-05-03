@@ -275,46 +275,9 @@ const Index = () => {
             <span className="flex items-center gap-1"><span className="size-2 rounded-full bg-coral" /> Shade</span>
           </div>
 
-          <div className="mt-4">
-            <div className="mb-2 flex items-center justify-between px-1">
-              <h3 className="text-sm font-semibold">Bars in view</h3>
-              <span className="text-xs text-muted-foreground">{barsInView.length} on map</span>
-            </div>
-            {barsInView.length === 0 ? (
-              <p className="rounded-2xl border border-dashed border-border bg-card p-4 text-center text-xs text-muted-foreground">
-                Pan or zoom the map to find bars in another area.
-              </p>
-            ) : (
-              <ul className="max-h-72 space-y-1 overflow-y-auto pr-1">
-                {barsInView.slice(0, 50).map((bar) => (
-                  <li key={bar.id}>
-                    <button
-                      onClick={() => setSelectedDirectoryBar(bar)}
-                      className="flex w-full items-center justify-between gap-3 rounded-xl border border-border bg-card px-3 py-2 text-left transition-colors hover:border-primary"
-                    >
-                      <div className="min-w-0">
-                        <p className="truncate text-sm font-medium">{bar.name}</p>
-                        {bar.address && (
-                          <p className="truncate text-[0.68rem] text-muted-foreground">{bar.address}</p>
-                        )}
-                      </div>
-                      <div className="flex shrink-0 items-center gap-2 text-[0.68rem]">
-                        {bar.outdoor_seating && (
-                          <span className="rounded-full bg-sun/15 px-2 py-0.5 font-semibold text-sun">Outdoor</span>
-                        )}
-                        {bar.rating != null && (
-                          <span className="flex items-center gap-0.5 text-muted-foreground">
-                            <Star className="size-3 text-sun" /> {bar.rating}
-                          </span>
-                        )}
-                      </div>
-                    </button>
-                  </li>
-                ))}
-              </ul>
-            )}
+          <div className="mt-3 px-1 text-xs text-muted-foreground">
+            {visibleBars.length} bar{visibleBars.length === 1 ? "" : "s"} in view
           </div>
-
           <div className="mt-3 space-y-2">
             {visibleBars.map((bar) => (
               <BarCard
