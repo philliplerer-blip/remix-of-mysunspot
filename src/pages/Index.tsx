@@ -33,7 +33,10 @@ const Index = () => {
   const { spots, addSpot, removeSpot, updateSpot } = useCustomSpots();
   const { bars: directoryBars } = useBarsDirectory();
   const geo = useGeolocation();
-  const weather = useWeather(geo.lat, geo.lng);
+  // Quantize to ~3 decimals (~100m) so small GPS jitter doesn't refetch weather constantly
+  const weatherLat = Math.round(geo.lat * 1000) / 1000;
+  const weatherLng = Math.round(geo.lng * 1000) / 1000;
+  const weather = useWeather(weatherLat, weatherLng);
   const [now, setNow] = useState(() => new Date());
   useEffect(() => {
     const id = window.setInterval(() => setNow(new Date()), 30_000);

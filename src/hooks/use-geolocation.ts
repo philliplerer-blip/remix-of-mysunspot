@@ -23,8 +23,7 @@ export const useGeolocation = (): GeoLocation => {
       return;
     }
     let cancelled = false;
-    navigator.geolocation.getCurrentPosition(
-      (pos) => {
+    const onSuccess = (pos: GeolocationPosition) => {
         if (cancelled) return;
         setState({
           lat: pos.coords.latitude,
@@ -33,15 +32,28 @@ export const useGeolocation = (): GeoLocation => {
           loading: false,
           error: null,
         });
-      },
-      (err) => {
+    };
+    const onError = (err: GeolocationPositionError) => {
         if (cancelled) return;
-        setState({ ...DEFAULT, loading: false, error: err.message });
-      },
-      { enableHighAccuracy: false, timeout: 8000, maximumAge: 5 * 60 * 1000 },
-    );
+        setState((prev) =>
+          prev.source === "gps"
+            ? { ...prev, error: err.message }
+            : { ...DEFAULT, loading: false, error: err.message },
+        );
+    };
+    navigator.geolocation.getCurrentPosition(onSuccess, onError, {
+      enableHighAccuracy: false,
+      timeout: 8000,
+      maximumAge: 5 * 60 * 1000,
+    });
+    const watchId = navigator.geolocation.watchPosition(onSuccess, onError, {
+      enableHighAccuracy: true,
+      timeout: 15000,
+      maximumAge: 30_000,
+    });
     return () => {
       cancelled = true;
+      navigator.geolocation.clearWatch(watchId);
     };
   }, []);
 
