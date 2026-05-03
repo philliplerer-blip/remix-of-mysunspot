@@ -12,7 +12,7 @@ import { useWeather } from "@/hooks/use-weather";
 import type { DirectoryBar } from "@/hooks/use-bars-directory";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription } from "@/components/ui/sheet";
 import { Star, TreePine } from "lucide-react";
-import { Filter, bars, filters, stateCopy } from "@/lib/bars";
+import { Filter, bars, filters, stateCopy, type Bar, type SunState } from "@/lib/bars";
 import { MAP_CENTER, MAP_SPAN, type CustomSpot, type SpotIcon } from "@/lib/spots";
 import { cn } from "@/lib/utils";
 
@@ -45,6 +45,48 @@ const Index = () => {
         b.lng >= mapBounds.west,
     );
   }, [directoryBars, mapBounds]);
+
+  const directoryBarsAsBars = useMemo<Bar[]>(() => {
+    const haversineKm = (lat1: number, lng1: number, lat2: number, lng2: number) => {
+      const R = 6371;
+      const dLat = ((lat2 - lat1) * Math.PI) / 180;
+      const dLng = ((lng2 - lng1) * Math.PI) / 180;
+      const a =
+        Math.sin(dLat / 2) ** 2 +
+        Math.cos((lat1 * Math.PI) / 180) *
+          Math.cos((lat2 * Math.PI) / 180) *
+          Math.sin(dLng / 2) ** 2;
+      return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+    };
+    const currentHour = new Date().getHours();
+    return barsInView.map((b, idx) => {
+      const tl = (b.sun_timeline ?? []) as Array<{ hour: number; sunlit: boolean; sun_elev: number }>;
+      const sunHours = tl.filter((e) => e.sun_elev > 0 && e.sunlit).map((e) => e.hour);
+      const start = sunHours.length ? sunHours[0] : 12;
+      const end = sunHours.length ? sunHours[sunHours.length - 1] + 1 : 18;
+      let state: SunState = "shade";
+      if (sunHours.includes(currentHour)) state = "sun";
+      else if (sunHours.some((h) => h > currentHour)) state = "soon";
+      const dKm = haversineKm(MAP_CENTER.lat, MAP_CENTER.lng, b.lat, b.lng);
+      const dist = dKm < 1 ? `${Math.round(dKm * 1000)} m` : `${dKm.toFixed(1)} km`;
+      const priceKr = b.price_level != null ? 50 + b.price_level * 15 : 65;
+      return {
+        id: idx,
+        name: b.name,
+        area: b.address?.split(",")[0] ?? "Copenhagen",
+        state,
+        beer: priceKr,
+        dist,
+        start,
+        end,
+        x: 50,
+        y: 50,
+        vibe: b.outdoor_seating ? "Outdoor seating" : "Indoor venue",
+        lat: b.lat,
+        lng: b.lng,
+      };
+    });
+  }, [barsInView]);
 
   const findNearestDirectoryBar = (lat: number, lng: number): DirectoryBar | null => {
     if (!directoryBars.length) return null;
@@ -100,14 +142,15 @@ const Index = () => {
   };
 
   const visibleBars = useMemo(() => {
-    return bars.filter((bar) => {
+    return directoryBarsAsBars.filter((bar) => {
       if (filter === "all") return true;
       if (filter === "cheap") return bar.beer <= 60;
       return bar.state === filter;
     });
-  }, [filter]);
+  }, [filter, directoryBarsAsBars]);
 
-  const activeBar = visibleBars.find((bar) => bar.id === selected) ?? visibleBars[0] ?? bars[0];
+  const activeBar =
+    visibleBars.find((bar) => bar.id === selected) ?? visibleBars[0] ?? bars[0];
 
   return (
     <main className="min-h-screen bg-app-gradient px-4 py-4 text-foreground sm:py-8">
@@ -232,46 +275,9 @@ const Index = () => {
             <span className="flex items-center gap-1"><span className="size-2 rounded-full bg-coral" /> Shade</span>
           </div>
 
-          <div className="mt-4">
-            <div className="mb-2 flex items-center justify-between px-1">
-              <h3 className="text-sm font-semibold">Bars in view</h3>
-              <span className="text-xs text-muted-foreground">{barsInView.length} on map</span>
-            </div>
-            {barsInView.length === 0 ? (
-              <p className="rounded-2xl border border-dashed border-border bg-card p-4 text-center text-xs text-muted-foreground">
-                Pan or zoom the map to find bars in another area.
-              </p>
-            ) : (
-              <ul className="max-h-72 space-y-1 overflow-y-auto pr-1">
-                {barsInView.slice(0, 50).map((bar) => (
-                  <li key={bar.id}>
-                    <button
-                      onClick={() => setSelectedDirectoryBar(bar)}
-                      className="flex w-full items-center justify-between gap-3 rounded-xl border border-border bg-card px-3 py-2 text-left transition-colors hover:border-primary"
-                    >
-                      <div className="min-w-0">
-                        <p className="truncate text-sm font-medium">{bar.name}</p>
-                        {bar.address && (
-                          <p className="truncate text-[0.68rem] text-muted-foreground">{bar.address}</p>
-                        )}
-                      </div>
-                      <div className="flex shrink-0 items-center gap-2 text-[0.68rem]">
-                        {bar.outdoor_seating && (
-                          <span className="rounded-full bg-sun/15 px-2 py-0.5 font-semibold text-sun">Outdoor</span>
-                        )}
-                        {bar.rating != null && (
-                          <span className="flex items-center gap-0.5 text-muted-foreground">
-                            <Star className="size-3 text-sun" /> {bar.rating}
-                          </span>
-                        )}
-                      </div>
-                    </button>
-                  </li>
-                ))}
-              </ul>
-            )}
+          <div className="mt-3 px-1 text-xs text-muted-foreground">
+            {visibleBars.length} bar{visibleBars.length === 1 ? "" : "s"} in view
           </div>
-
           <div className="mt-3 space-y-2">
             {visibleBars.map((bar) => (
               <BarCard
@@ -282,8 +288,8 @@ const Index = () => {
                 onSelect={() => {
                   setSelected(bar.id);
                   setExpanded(false);
-                  const nearest = findNearestDirectoryBar(bar.lat, bar.lng);
-                  if (nearest) setSelectedDirectoryBar(nearest);
+                  const match = barsInView[bar.id] ?? findNearestDirectoryBar(bar.lat, bar.lng);
+                  if (match) setSelectedDirectoryBar(match);
                 }}
                 onToggleFavorite={() => toggleFavorite(bar.id)}
               />
