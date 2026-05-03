@@ -12,7 +12,7 @@ import { useWeather } from "@/hooks/use-weather";
 import type { DirectoryBar } from "@/hooks/use-bars-directory";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription } from "@/components/ui/sheet";
 import { Star, TreePine } from "lucide-react";
-import { Filter, bars, filters, stateCopy } from "@/lib/bars";
+import { Filter, bars, filters, stateCopy, type Bar, type SunState } from "@/lib/bars";
 import { MAP_CENTER, MAP_SPAN, type CustomSpot, type SpotIcon } from "@/lib/spots";
 import { cn } from "@/lib/utils";
 
@@ -45,6 +45,48 @@ const Index = () => {
         b.lng >= mapBounds.west,
     );
   }, [directoryBars, mapBounds]);
+
+  const directoryBarsAsBars = useMemo<Bar[]>(() => {
+    const haversineKm = (lat1: number, lng1: number, lat2: number, lng2: number) => {
+      const R = 6371;
+      const dLat = ((lat2 - lat1) * Math.PI) / 180;
+      const dLng = ((lng2 - lng1) * Math.PI) / 180;
+      const a =
+        Math.sin(dLat / 2) ** 2 +
+        Math.cos((lat1 * Math.PI) / 180) *
+          Math.cos((lat2 * Math.PI) / 180) *
+          Math.sin(dLng / 2) ** 2;
+      return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+    };
+    const currentHour = new Date().getHours();
+    return barsInView.map((b, idx) => {
+      const tl = (b.sun_timeline ?? []) as Array<{ hour: number; sunlit: boolean; sun_elev: number }>;
+      const sunHours = tl.filter((e) => e.sun_elev > 0 && e.sunlit).map((e) => e.hour);
+      const start = sunHours.length ? sunHours[0] : 12;
+      const end = sunHours.length ? sunHours[sunHours.length - 1] + 1 : 18;
+      let state: SunState = "shade";
+      if (sunHours.includes(currentHour)) state = "sun";
+      else if (sunHours.some((h) => h > currentHour)) state = "soon";
+      const dKm = haversineKm(MAP_CENTER.lat, MAP_CENTER.lng, b.lat, b.lng);
+      const dist = dKm < 1 ? `${Math.round(dKm * 1000)} m` : `${dKm.toFixed(1)} km`;
+      const priceKr = b.price_level != null ? 50 + b.price_level * 15 : 65;
+      return {
+        id: idx,
+        name: b.name,
+        area: b.address?.split(",")[0] ?? "Copenhagen",
+        state,
+        beer: priceKr,
+        dist,
+        start,
+        end,
+        x: 50,
+        y: 50,
+        vibe: b.outdoor_seating ? "Outdoor seating" : "Indoor venue",
+        lat: b.lat,
+        lng: b.lng,
+      };
+    });
+  }, [barsInView]);
 
   const findNearestDirectoryBar = (lat: number, lng: number): DirectoryBar | null => {
     if (!directoryBars.length) return null;
@@ -100,14 +142,15 @@ const Index = () => {
   };
 
   const visibleBars = useMemo(() => {
-    return bars.filter((bar) => {
+    return directoryBarsAsBars.filter((bar) => {
       if (filter === "all") return true;
       if (filter === "cheap") return bar.beer <= 60;
       return bar.state === filter;
     });
-  }, [filter]);
+  }, [filter, directoryBarsAsBars]);
 
-  const activeBar = visibleBars.find((bar) => bar.id === selected) ?? visibleBars[0] ?? bars[0];
+  const activeBar =
+    visibleBars.find((bar) => bar.id === selected) ?? visibleBars[0] ?? bars[0];
 
   return (
     <main className="min-h-screen bg-app-gradient px-4 py-4 text-foreground sm:py-8">
