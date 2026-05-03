@@ -14,6 +14,7 @@ interface MapViewProps {
   onEditSpot: (spot: CustomSpot) => void;
   onSelectDirectoryBar: (bar: DirectoryBar) => void;
   onLongPress: (latLng: { lat: number; lng: number }) => void;
+  onBoundsChanged?: (bounds: { north: number; south: number; east: number; west: number }) => void;
 }
 
 let cachedKey: string | null = null;
@@ -46,6 +47,7 @@ export const MapView = ({
   onEditSpot,
   onSelectDirectoryBar,
   onLongPress,
+  onBoundsChanged,
 }: MapViewProps) => {
   const containerRef = useRef<HTMLDivElement>(null);
   const mapRef = useRef<google.maps.Map | null>(null);
@@ -58,6 +60,7 @@ export const MapView = ({
   const onSelectBarRef = useRef(onSelectBar);
   const onEditSpotRef = useRef(onEditSpot);
   const onSelectDirectoryBarRef = useRef(onSelectDirectoryBar);
+  const onBoundsChangedRef = useRef(onBoundsChanged);
   const [error, setError] = useState<string | null>(null);
   const [ready, setReady] = useState(false);
 
@@ -65,6 +68,7 @@ export const MapView = ({
   onSelectBarRef.current = onSelectBar;
   onEditSpotRef.current = onEditSpot;
   onSelectDirectoryBarRef.current = onSelectDirectoryBar;
+  onBoundsChangedRef.current = onBoundsChanged;
 
   // Init map once
   useEffect(() => {
@@ -92,6 +96,19 @@ export const MapView = ({
         });
         mapRef.current = map;
         setReady(true);
+        const emit = () => {
+          const b = map.getBounds();
+          if (!b || !onBoundsChangedRef.current) return;
+          const ne = b.getNorthEast();
+          const sw = b.getSouthWest();
+          onBoundsChangedRef.current({
+            north: ne.lat(),
+            south: sw.lat(),
+            east: ne.lng(),
+            west: sw.lng(),
+          });
+        };
+        map.addListener("idle", emit);
       } catch (e) {
         setError(e instanceof Error ? e.message : "Failed to load map");
       }
