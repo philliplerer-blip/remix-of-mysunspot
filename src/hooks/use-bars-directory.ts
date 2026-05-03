@@ -33,7 +33,7 @@ export const useBarsDirectory = () => {
         .select("id, name, address, lat, lng, rating, price_level, outdoor_seating, sun_timeline, timeline_date")
         .limit(500);
       if (cancelled) return;
-      setBars((data ?? []) as DirectoryBar[]);
+      setBars((data ?? []) as unknown as DirectoryBar[]);
       setLoading(false);
     })();
     return () => {
