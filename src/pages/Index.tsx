@@ -8,6 +8,9 @@ import { MapView } from "@/components/MapView";
 import { useFavorites } from "@/hooks/use-favorites";
 import { useCustomSpots } from "@/hooks/use-custom-spots";
 import { useBarsDirectory } from "@/hooks/use-bars-directory";
+import type { DirectoryBar } from "@/hooks/use-bars-directory";
+import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription } from "@/components/ui/sheet";
+import { Star, TreePine } from "lucide-react";
 import { Filter, bars, filters, stateCopy } from "@/lib/bars";
 import { MAP_CENTER, MAP_SPAN, type CustomSpot, type SpotIcon } from "@/lib/spots";
 import { cn } from "@/lib/utils";
@@ -32,6 +35,7 @@ const Index = () => {
   const [spotDialogOpen, setSpotDialogOpen] = useState(false);
   const [pendingPosition, setPendingPosition] = useState<{ x: number; y: number } | null>(null);
   const [editingSpot, setEditingSpot] = useState<CustomSpot | null>(null);
+  const [selectedDirectoryBar, setSelectedDirectoryBar] = useState<DirectoryBar | null>(null);
 
   const openAddDialog = (position: { x: number; y: number } | null) => {
     setEditingSpot(null);
@@ -136,6 +140,7 @@ const Index = () => {
             selectedBarId={activeBar.id}
             onSelectBar={(id) => { setSelected(id); setExpanded(false); }}
             onEditSpot={(spot) => openEditDialog(spot)}
+            onSelectDirectoryBar={(bar) => setSelectedDirectoryBar(bar)}
             onLongPress={handleMapLongPress}
           />
           <div className="absolute left-4 top-4 z-10 flex items-center gap-1 rounded-md bg-espresso/85 px-3 py-1.5 text-xs font-medium text-secondary backdrop-blur">
