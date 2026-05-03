@@ -71,7 +71,11 @@ async function fetchBuildings(centerLat: number, centerLng: number, radiusM: num
 out tags geom;`;
   const res = await fetch("https://overpass-api.de/api/interpreter", {
     method: "POST",
-    headers: { "Content-Type": "application/x-www-form-urlencoded" },
+    headers: {
+      "Content-Type": "application/x-www-form-urlencoded",
+      "User-Agent": "sunny-bars-app/1.0 (lovable.dev)",
+      "Accept": "application/json",
+    },
     body: "data=" + encodeURIComponent(query),
   });
   if (!res.ok) throw new Error(`Overpass ${res.status}`);
