@@ -7,6 +7,7 @@ import { AddSpotDialog } from "@/components/AddSpotDialog";
 import { MapView } from "@/components/MapView";
 import { useFavorites } from "@/hooks/use-favorites";
 import { useCustomSpots } from "@/hooks/use-custom-spots";
+import { useBarsDirectory } from "@/hooks/use-bars-directory";
 import { Filter, bars, filters, stateCopy } from "@/lib/bars";
 import { MAP_CENTER, MAP_SPAN, type CustomSpot, type SpotIcon } from "@/lib/spots";
 import { cn } from "@/lib/utils";
@@ -27,6 +28,7 @@ const Index = () => {
   const [expanded, setExpanded] = useState(true);
   const { favorites, toggleFavorite } = useFavorites();
   const { spots, addSpot, removeSpot, updateSpot } = useCustomSpots();
+  const { bars: directoryBars } = useBarsDirectory();
   const [spotDialogOpen, setSpotDialogOpen] = useState(false);
   const [pendingPosition, setPendingPosition] = useState<{ x: number; y: number } | null>(null);
   const [editingSpot, setEditingSpot] = useState<CustomSpot | null>(null);
@@ -130,6 +132,7 @@ const Index = () => {
           <MapView
             visibleBars={visibleBars}
             spots={spots}
+            directoryBars={directoryBars}
             selectedBarId={activeBar.id}
             onSelectBar={(id) => { setSelected(id); setExpanded(false); }}
             onEditSpot={(spot) => openEditDialog(spot)}
