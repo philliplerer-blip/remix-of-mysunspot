@@ -9,6 +9,7 @@ import { useFavorites } from "@/hooks/use-favorites";
 import { useCustomSpots } from "@/hooks/use-custom-spots";
 import { useBarsDirectory } from "@/hooks/use-bars-directory";
 import { useWeather } from "@/hooks/use-weather";
+import { useGeolocation } from "@/hooks/use-geolocation";
 import type { DirectoryBar } from "@/hooks/use-bars-directory";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription } from "@/components/ui/sheet";
 import { Star, TreePine } from "lucide-react";
@@ -31,8 +32,14 @@ const Index = () => {
   const { favorites, toggleFavorite } = useFavorites();
   const { spots, addSpot, removeSpot, updateSpot } = useCustomSpots();
   const { bars: directoryBars } = useBarsDirectory();
-  const weather = useWeather();
-  const nowHour = new Date().getHours();
+  const geo = useGeolocation();
+  const weather = useWeather(geo.lat, geo.lng);
+  const [now, setNow] = useState(() => new Date());
+  useEffect(() => {
+    const id = window.setInterval(() => setNow(new Date()), 30_000);
+    return () => window.clearInterval(id);
+  }, []);
+  const nowHour = now.getHours();
   const [mapBounds, setMapBounds] = useState<{ north: number; south: number; east: number; west: number } | null>(null);
 
   const barsInView = useMemo(() => {
