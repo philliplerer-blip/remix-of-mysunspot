@@ -259,6 +259,30 @@ const Index = () => {
                       </span>
                     )}
                   </div>
+                  {selectedDirectoryBar.sun_timeline && selectedDirectoryBar.sun_timeline.length > 0 && (() => {
+                    const tl = selectedDirectoryBar.sun_timeline;
+                    const day = tl.filter((e) => e.sun_elev > 0);
+                    const sunHours = day.filter((e) => e.sunlit).map((e) => e.hour);
+                    const shadeHours = day.filter((e) => !e.sunlit).map((e) => e.hour);
+                    const fmt = (h: number) => `${String(h).padStart(2, "0")}:00`;
+                    const Row = ({ label, value }: { label: string; value: string }) => (
+                      <div className="flex justify-between">
+                        <span className="text-muted-foreground">{label}</span>
+                        <span className="font-medium">{value}</span>
+                      </div>
+                    );
+                    return (
+                      <div className="mb-3 space-y-1 rounded-md border border-border bg-muted/30 p-3 text-xs">
+                        <Row label="Sunrise" value={day.length ? fmt(day[0].hour) : "—"} />
+                        <Row label="Sunset" value={day.length ? fmt(day[day.length - 1].hour) : "—"} />
+                        <Row label="First sunlit hour" value={sunHours.length ? fmt(sunHours[0]) : "No direct sun"} />
+                        <Row label="Last sunlit hour" value={sunHours.length ? fmt(sunHours[sunHours.length - 1]) : "No direct sun"} />
+                        <Row label="First shade hour" value={shadeHours.length ? fmt(shadeHours[0]) : "Sunny all day"} />
+                        <Row label="Last shade hour" value={shadeHours.length ? fmt(shadeHours[shadeHours.length - 1]) : "Sunny all day"} />
+                        <Row label="Total sunlit hours" value={`${sunHours.length}h`} />
+                      </div>
+                    );
+                  })()}
                   {selectedDirectoryBar.sun_timeline && selectedDirectoryBar.sun_timeline.length > 0 ? (
                     <div className="grid grid-cols-12 gap-1">
                       {selectedDirectoryBar.sun_timeline.map((entry) => {
