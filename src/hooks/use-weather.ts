@@ -18,9 +18,6 @@ export interface WeatherSummary {
   error: string | null;
 }
 
-const LAT = 55.6761;
-const LNG = 12.5683;
-
 const iconFor = (cloud: number, isDay: boolean) => {
   if (!isDay) return "🌙";
   if (cloud < 20) return "☀️";
@@ -29,7 +26,7 @@ const iconFor = (cloud: number, isDay: boolean) => {
   return "🌥️";
 };
 
-export const useWeather = (): WeatherSummary => {
+export const useWeather = (lat: number, lng: number): WeatherSummary => {
   const [data, setData] = useState<WeatherSummary>({
     currentTemp: 0,
     currentCloudCover: 0,
@@ -43,7 +40,7 @@ export const useWeather = (): WeatherSummary => {
     let cancelled = false;
     (async () => {
       try {
-        const url = `https://api.open-meteo.com/v1/forecast?latitude=${LAT}&longitude=${LNG}&current=temperature_2m,cloud_cover,is_day&hourly=temperature_2m,cloud_cover,is_day&timezone=auto&forecast_days=1`;
+        const url = `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lng}&current=temperature_2m,cloud_cover,is_day&hourly=temperature_2m,cloud_cover,is_day&timezone=auto&forecast_days=1`;
         const res = await fetch(url);
         if (!res.ok) throw new Error(`Weather ${res.status}`);
         const json = await res.json();
@@ -85,7 +82,7 @@ export const useWeather = (): WeatherSummary => {
     return () => {
       cancelled = true;
     };
-  }, []);
+  }, [lat, lng]);
 
   return data;
 };
