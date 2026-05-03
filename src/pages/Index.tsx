@@ -8,22 +8,13 @@ import { MapView } from "@/components/MapView";
 import { useFavorites } from "@/hooks/use-favorites";
 import { useCustomSpots } from "@/hooks/use-custom-spots";
 import { useBarsDirectory } from "@/hooks/use-bars-directory";
+import { useWeather } from "@/hooks/use-weather";
 import type { DirectoryBar } from "@/hooks/use-bars-directory";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription } from "@/components/ui/sheet";
 import { Star, TreePine } from "lucide-react";
 import { Filter, bars, filters, stateCopy } from "@/lib/bars";
 import { MAP_CENTER, MAP_SPAN, type CustomSpot, type SpotIcon } from "@/lib/spots";
 import { cn } from "@/lib/utils";
-
-const hourly = [
-  { time: "14", pct: 74, icon: "🌤️" },
-  { time: "15", pct: 82, icon: "☀️" },
-  { time: "16", pct: 88, icon: "☀️" },
-  { time: "17", pct: 79, icon: "🌤️" },
-  { time: "18", pct: 66, icon: "⛅" },
-  { time: "19", pct: 58, icon: "⛅" },
-  { time: "20", pct: 42, icon: "🌥️" },
-];
 
 const Index = () => {
   const [filter, setFilter] = useState<Filter>("all");
@@ -32,6 +23,8 @@ const Index = () => {
   const { favorites, toggleFavorite } = useFavorites();
   const { spots, addSpot, removeSpot, updateSpot } = useCustomSpots();
   const { bars: directoryBars } = useBarsDirectory();
+  const weather = useWeather();
+  const nowHour = new Date().getHours();
   const [spotDialogOpen, setSpotDialogOpen] = useState(false);
   const [pendingPosition, setPendingPosition] = useState<{ x: number; y: number } | null>(null);
   const [editingSpot, setEditingSpot] = useState<CustomSpot | null>(null);
@@ -100,25 +93,51 @@ const Index = () => {
 
         <div className="bg-espresso-soft px-5 pb-4">
           <div className="flex items-center gap-3 rounded-xl border border-butter/25 bg-cream/10 p-3 text-secondary backdrop-blur">
-            <div className="grid size-11 place-items-center rounded-full bg-sun-gradient text-xl shadow-sun">☀️</div>
+            <div className="grid size-11 place-items-center rounded-full bg-sun-gradient text-xl shadow-sun">
+              {weather.loading ? "☀️" : iconForCloud(weather.currentCloudCover, weather.currentSunPct > 0)}
+            </div>
             <div className="min-w-0 flex-1">
-              <p className="text-sm font-semibold">Clear enough for terraces</p>
-              <p className="text-xs text-muted-foreground">18% cloud cover · southwest sun path</p>
+              <p className="text-sm font-semibold">
+                {weather.loading
+                  ? "Loading weather…"
+                  : weather.currentSunPct >= 70
+                    ? "Clear enough for terraces"
+                    : weather.currentSunPct >= 40
+                      ? "Patchy sun, grab a spot"
+                      : "Mostly cloudy right now"}
+              </p>
+              <p className="text-xs text-muted-foreground">
+                {weather.loading
+                  ? "Live conditions in Copenhagen"
+                  : `${weather.currentCloudCover}% cloud cover · ${weather.currentTemp}°C`}
+              </p>
             </div>
             <div className="text-right">
-              <p className="text-xl font-semibold text-sun">82%</p>
+              <p className="text-xl font-semibold text-sun">
+                {weather.loading ? "—" : `${weather.currentSunPct}%`}
+              </p>
               <p className="text-[0.62rem] text-muted-foreground">possible sun</p>
             </div>
           </div>
 
           <div className="mt-3 flex gap-2 overflow-x-auto pb-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
-            {hourly.map((hour) => (
-              <div key={hour.time} className={cn("min-w-14 rounded-xl border border-butter/20 bg-cream/8 px-3 py-2 text-center", hour.time === "16" && "border-sun bg-sun/15")}>
-                <p className="text-[0.62rem] text-muted-foreground">{hour.time}:00</p>
-                <p className="text-base leading-5">{hour.icon}</p>
-                <p className="text-[0.68rem] font-semibold text-secondary">{hour.pct}%</p>
-              </div>
-            ))}
+            {weather.loading && (
+              <div className="text-xs text-muted-foreground">Loading hourly forecast…</div>
+            )}
+            {!weather.loading &&
+              weather.hourly.map((hour) => (
+                <div
+                  key={hour.hour}
+                  className={cn(
+                    "min-w-14 rounded-xl border border-butter/20 bg-cream/8 px-3 py-2 text-center",
+                    hour.hour === nowHour && "border-sun bg-sun/15",
+                  )}
+                >
+                  <p className="text-[0.62rem] text-muted-foreground">{hour.time}:00</p>
+                  <p className="text-base leading-5">{hour.icon}</p>
+                  <p className="text-[0.68rem] font-semibold text-secondary">{hour.sunPct}%</p>
+                </div>
+              ))}
           </div>
         </div>
 
