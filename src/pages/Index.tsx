@@ -176,7 +176,9 @@ const Index = () => {
             <div>
               <p className="flex items-center gap-1 text-xs font-medium text-flame"><Sparkles className="size-3" /> Live sun finder</p>
               <h1 className="mt-1 font-display text-3xl font-semibold tracking-normal text-secondary">Sunny bars</h1>
-              <p className="text-xs text-muted-foreground">Copenhagen · Indre By first</p>
+              <p className="text-xs text-muted-foreground">
+                {geo.source === "gps" ? "Your location · live weather" : "Copenhagen · default location"}
+              </p>
             </div>
             <Button variant="glass" size="icon" aria-label="Search sunny bars"><Search className="size-4" /></Button>
           </div>
