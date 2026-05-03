@@ -3,10 +3,12 @@ import { setOptions, importLibrary } from "@googlemaps/js-api-loader";
 import { supabase } from "@/integrations/supabase/client";
 import { bars, stateCopy, type Bar } from "@/lib/bars";
 import { spotEmoji, type CustomSpot, MAP_CENTER } from "@/lib/spots";
+import type { DirectoryBar } from "@/hooks/use-bars-directory";
 
 interface MapViewProps {
   visibleBars: Bar[];
   spots: CustomSpot[];
+  directoryBars: DirectoryBar[];
   selectedBarId: number;
   onSelectBar: (id: number) => void;
   onEditSpot: (spot: CustomSpot) => void;
@@ -37,6 +39,7 @@ const stateColor: Record<Bar["state"], string> = {
 export const MapView = ({
   visibleBars,
   spots,
+  directoryBars,
   selectedBarId,
   onSelectBar,
   onEditSpot,
@@ -46,6 +49,7 @@ export const MapView = ({
   const mapRef = useRef<google.maps.Map | null>(null);
   const barMarkersRef = useRef<Map<number, google.maps.Marker>>(new Map());
   const spotMarkersRef = useRef<Map<string, google.maps.Marker>>(new Map());
+  const dirMarkersRef = useRef<Map<string, google.maps.Marker>>(new Map());
   const pressTimer = useRef<number | null>(null);
   const pressMoved = useRef(false);
   const onLongPressRef = useRef(onLongPress);
@@ -74,9 +78,9 @@ export const MapView = ({
         const map = new Map(containerRef.current, {
           center: MAP_CENTER,
           zoom: 16,
-          tilt: 45,
+          tilt: 0,
           heading: 0,
-          mapTypeId: "satellite",
+          mapTypeId: "roadmap",
           disableDefaultUI: true,
           zoomControl: true,
           gestureHandling: "greedy",
@@ -212,6 +216,45 @@ export const MapView = ({
       }
     }
   }, [spots, ready]);
+
+  // Sync directory (Google Places) bar markers
+  useEffect(() => {
+    const map = mapRef.current;
+    if (!map || !ready) return;
+    const existing = dirMarkersRef.current;
+    const ids = new Set(directoryBars.map((b) => b.id));
+    for (const [id, marker] of existing) {
+      if (!ids.has(id)) {
+        marker.setMap(null);
+        existing.delete(id);
+      }
+    }
+    for (const bar of directoryBars) {
+      const outdoor = bar.outdoor_seating === true;
+      const icon: google.maps.Symbol = {
+        path: google.maps.SymbolPath.CIRCLE,
+        fillColor: outdoor ? "#F5B544" : "#8A8A8A",
+        fillOpacity: 0.9,
+        strokeColor: "#1F1410",
+        strokeWeight: outdoor ? 2 : 1,
+        scale: outdoor ? 7 : 5,
+      };
+      let marker = existing.get(bar.id);
+      if (!marker) {
+        marker = new google.maps.Marker({
+          position: { lat: bar.lat, lng: bar.lng },
+          map,
+          title: `${bar.name}${outdoor ? " · Outdoor seating" : ""}`,
+          icon,
+          zIndex: outdoor ? 50 : 10,
+        });
+        existing.set(bar.id, marker);
+      } else {
+        marker.setIcon(icon);
+        marker.setPosition({ lat: bar.lat, lng: bar.lng });
+      }
+    }
+  }, [directoryBars, ready]);
 
   return (
     <div className="absolute inset-0">
