@@ -211,6 +211,48 @@ const Index = () => {
         initialSpot={editingSpot}
         onDelete={editingSpot ? () => removeSpot(editingSpot.id) : undefined}
       />
+      <Sheet open={!!selectedDirectoryBar} onOpenChange={(open) => !open && setSelectedDirectoryBar(null)}>
+        <SheetContent side="right" className="w-[340px] sm:w-[400px]">
+          {selectedDirectoryBar && (
+            <>
+              <SheetHeader>
+                <SheetTitle>{selectedDirectoryBar.name}</SheetTitle>
+                {selectedDirectoryBar.address && (
+                  <SheetDescription>{selectedDirectoryBar.address}</SheetDescription>
+                )}
+              </SheetHeader>
+              <div className="mt-6 space-y-4 text-sm">
+                <div className="flex items-center gap-2">
+                  <Star className="size-4 text-sun" />
+                  <span>
+                    {selectedDirectoryBar.rating != null
+                      ? `${selectedDirectoryBar.rating} / 5`
+                      : "No rating"}
+                  </span>
+                </div>
+                <div>
+                  <span className="text-muted-foreground">Price: </span>
+                  <span className="font-semibold">
+                    {selectedDirectoryBar.price_level != null
+                      ? "$".repeat(Math.max(1, selectedDirectoryBar.price_level))
+                      : "—"}
+                  </span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <TreePine className={cn("size-4", selectedDirectoryBar.outdoor_seating ? "text-sun" : "text-muted-foreground")} />
+                  <span>
+                    {selectedDirectoryBar.outdoor_seating === true
+                      ? "Outdoor seating available"
+                      : selectedDirectoryBar.outdoor_seating === false
+                        ? "No outdoor seating"
+                        : "Outdoor seating unknown"}
+                  </span>
+                </div>
+              </div>
+            </>
+          )}
+        </SheetContent>
+      </Sheet>
     </main>
   );
 };
