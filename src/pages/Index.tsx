@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { ChevronDown, Heart, LocateFixed, Navigation, Plus, Search, Sparkles, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { BarCard } from "@/components/BarCard";
@@ -9,6 +9,7 @@ import { useFavorites } from "@/hooks/use-favorites";
 import { useCustomSpots } from "@/hooks/use-custom-spots";
 import { useBarsDirectory } from "@/hooks/use-bars-directory";
 import { useWeather } from "@/hooks/use-weather";
+import { useGeolocation } from "@/hooks/use-geolocation";
 import type { DirectoryBar } from "@/hooks/use-bars-directory";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription } from "@/components/ui/sheet";
 import { Star, TreePine } from "lucide-react";
@@ -31,8 +32,14 @@ const Index = () => {
   const { favorites, toggleFavorite } = useFavorites();
   const { spots, addSpot, removeSpot, updateSpot } = useCustomSpots();
   const { bars: directoryBars } = useBarsDirectory();
-  const weather = useWeather();
-  const nowHour = new Date().getHours();
+  const geo = useGeolocation();
+  const weather = useWeather(geo.lat, geo.lng);
+  const [now, setNow] = useState(() => new Date());
+  useEffect(() => {
+    const id = window.setInterval(() => setNow(new Date()), 30_000);
+    return () => window.clearInterval(id);
+  }, []);
+  const nowHour = now.getHours();
   const [mapBounds, setMapBounds] = useState<{ north: number; south: number; east: number; west: number } | null>(null);
 
   const barsInView = useMemo(() => {
@@ -157,14 +164,21 @@ const Index = () => {
       <section className="mx-auto flex min-h-[calc(100vh-2rem)] w-full max-w-[430px] flex-col overflow-hidden rounded-[2rem] border border-butter/60 bg-background shadow-panel animate-rise-in">
         <header className="bg-espresso px-5 pb-4 pt-3 text-secondary">
           <div className="flex items-center justify-between text-[0.7rem] text-muted-foreground">
-            <span>9:41</span>
-            <span>Thu 30 Apr · 16:21</span>
+            <span>
+              {now.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
+            </span>
+            <span>
+              {now.toLocaleDateString([], { weekday: "short", day: "numeric", month: "short" })} ·{" "}
+              {now.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
+            </span>
           </div>
           <div className="mt-4 flex items-end justify-between gap-4">
             <div>
               <p className="flex items-center gap-1 text-xs font-medium text-flame"><Sparkles className="size-3" /> Live sun finder</p>
               <h1 className="mt-1 font-display text-3xl font-semibold tracking-normal text-secondary">Sunny bars</h1>
-              <p className="text-xs text-muted-foreground">Copenhagen · Indre By first</p>
+              <p className="text-xs text-muted-foreground">
+                {geo.source === "gps" ? "Your location · live weather" : "Copenhagen · default location"}
+              </p>
             </div>
             <Button variant="glass" size="icon" aria-label="Search sunny bars"><Search className="size-4" /></Button>
           </div>
