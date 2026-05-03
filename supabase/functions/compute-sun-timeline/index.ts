@@ -69,15 +69,13 @@ async function fetchBuildings(centerLat: number, centerLng: number, radiusM: num
   const query = `[out:json][timeout:60];
 (way["building"](around:${radiusM},${centerLat},${centerLng}););
 out tags geom;`;
-  const res = await fetch("https://overpass-api.de/api/interpreter", {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/x-www-form-urlencoded",
-      "User-Agent": "sunny-bars-app/1.0 (lovable.dev)",
-      "Accept": "application/json",
+  const res = await fetch(
+    "https://overpass-api.de/api/interpreter?data=" + encodeURIComponent(query),
+    {
+      method: "GET",
+      headers: { "User-Agent": "sunny-bars-app/1.0 (lovable.dev)" },
     },
-    body: "data=" + encodeURIComponent(query),
-  });
+  );
   if (!res.ok) throw new Error(`Overpass ${res.status}`);
   const data = await res.json();
   const buildings: Building[] = [];
