@@ -164,8 +164,13 @@ const Index = () => {
       <section className="mx-auto flex min-h-[calc(100vh-2rem)] w-full max-w-[430px] flex-col overflow-hidden rounded-[2rem] border border-butter/60 bg-background shadow-panel animate-rise-in">
         <header className="bg-espresso px-5 pb-4 pt-3 text-secondary">
           <div className="flex items-center justify-between text-[0.7rem] text-muted-foreground">
-            <span>9:41</span>
-            <span>Thu 30 Apr · 16:21</span>
+            <span>
+              {now.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
+            </span>
+            <span>
+              {now.toLocaleDateString([], { weekday: "short", day: "numeric", month: "short" })} ·{" "}
+              {now.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
+            </span>
           </div>
           <div className="mt-4 flex items-end justify-between gap-4">
             <div>
