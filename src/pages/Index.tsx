@@ -288,8 +288,8 @@ const Index = () => {
                 onSelect={() => {
                   setSelected(bar.id);
                   setExpanded(false);
-                  const nearest = findNearestDirectoryBar(bar.lat, bar.lng);
-                  if (nearest) setSelectedDirectoryBar(nearest);
+                  const match = barsInView[bar.id] ?? findNearestDirectoryBar(bar.lat, bar.lng);
+                  if (match) setSelectedDirectoryBar(match);
                 }}
                 onToggleFavorite={() => toggleFavorite(bar.id)}
               />
