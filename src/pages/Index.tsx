@@ -16,6 +16,14 @@ import { Filter, bars, filters, stateCopy } from "@/lib/bars";
 import { MAP_CENTER, MAP_SPAN, type CustomSpot, type SpotIcon } from "@/lib/spots";
 import { cn } from "@/lib/utils";
 
+const iconForCloud = (cloud: number, isDay: boolean) => {
+  if (!isDay) return "🌙";
+  if (cloud < 20) return "☀️";
+  if (cloud < 50) return "🌤️";
+  if (cloud < 80) return "⛅";
+  return "🌥️";
+};
+
 const Index = () => {
   const [filter, setFilter] = useState<Filter>("all");
   const [selected, setSelected] = useState(0);
