@@ -69,14 +69,31 @@ async function fetchBuildings(centerLat: number, centerLng: number, radiusM: num
   const query = `[out:json][timeout:60];
 (way["building"](around:${radiusM},${centerLat},${centerLng}););
 out tags geom;`;
-  const res = await fetch(
-    "https://overpass-api.de/api/interpreter?data=" + encodeURIComponent(query),
-    {
-      method: "GET",
-      headers: { "User-Agent": "sunny-bars-app/1.0 (lovable.dev)" },
-    },
-  );
-  if (!res.ok) throw new Error(`Overpass ${res.status}`);
+  const endpoints = [
+    "https://overpass.kumi.systems/api/interpreter",
+    "https://overpass.private.coffee/api/interpreter",
+    "https://overpass-api.de/api/interpreter",
+  ];
+  let res: Response | null = null;
+  let lastErr = "";
+  for (const ep of endpoints) {
+    try {
+      const r = await fetch(ep, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/x-www-form-urlencoded",
+          "User-Agent": "sunny-bars-app/1.0",
+        },
+        body: "data=" + encodeURIComponent(query),
+      });
+      if (r.ok) { res = r; break; }
+      lastErr = `${ep} ${r.status}`;
+      await r.text();
+    } catch (e) {
+      lastErr = `${ep} ${e instanceof Error ? e.message : String(e)}`;
+    }
+  }
+  if (!res) throw new Error(`Overpass failed: ${lastErr}`);
   const data = await res.json();
   const buildings: Building[] = [];
   for (const el of data.elements ?? []) {
