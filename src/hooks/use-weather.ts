@@ -26,6 +26,17 @@ const iconFor = (cloud: number, isDay: boolean) => {
   return "🌥️";
 };
 
+// Cache weather responses by rounded coordinates (~1km precision) for 10 minutes
+// so revisiting the same area doesn't re-hit the Open-Meteo API.
+const CACHE_TTL_MS = 10 * 60 * 1000;
+const CACHE_PRECISION = 100; // 2 decimals ≈ ~1.1km
+type CacheEntry = { ts: number; data: Omit<WeatherSummary, "loading" | "error"> };
+const weatherCache = new Map<string, CacheEntry>();
+const inflight = new Map<string, Promise<Omit<WeatherSummary, "loading" | "error">>>();
+
+const cacheKey = (lat: number, lng: number) =>
+  `${Math.round(lat * CACHE_PRECISION) / CACHE_PRECISION},${Math.round(lng * CACHE_PRECISION) / CACHE_PRECISION}`;
+
 export const useWeather = (lat: number, lng: number): WeatherSummary => {
   const [data, setData] = useState<WeatherSummary>({
     currentTemp: 0,
@@ -38,42 +49,58 @@ export const useWeather = (lat: number, lng: number): WeatherSummary => {
 
   useEffect(() => {
     let cancelled = false;
+    const key = cacheKey(lat, lng);
+    const cached = weatherCache.get(key);
+    if (cached && Date.now() - cached.ts < CACHE_TTL_MS) {
+      setData({ ...cached.data, loading: false, error: null });
+      return () => {
+        cancelled = true;
+      };
+    }
+
     (async () => {
       try {
-        const url = `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lng}&current=temperature_2m,cloud_cover,is_day&hourly=temperature_2m,cloud_cover,is_day&timezone=auto&forecast_days=1`;
-        const res = await fetch(url);
-        if (!res.ok) throw new Error(`Weather ${res.status}`);
-        const json = await res.json();
+        let promise = inflight.get(key);
+        if (!promise) {
+          promise = (async () => {
+            const url = `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lng}&current=temperature_2m,cloud_cover,is_day&hourly=temperature_2m,cloud_cover,is_day&timezone=auto&forecast_days=1`;
+            const res = await fetch(url);
+            if (!res.ok) throw new Error(`Weather ${res.status}`);
+            const json = await res.json();
+
+            const currentHour = new Date().getHours();
+            const hourly: WeatherHour[] = (json.hourly?.time ?? []).map((t: string, i: number) => {
+              const h = new Date(t).getHours();
+              const cloud = json.hourly.cloud_cover[i] ?? 0;
+              const isDay = (json.hourly.is_day?.[i] ?? 1) === 1;
+              return {
+                time: String(h).padStart(2, "0"),
+                hour: h,
+                cloudCover: cloud,
+                sunPct: isDay ? Math.max(0, 100 - cloud) : 0,
+                icon: iconFor(cloud, isDay),
+                temp: Math.round(json.hourly.temperature_2m[i] ?? 0),
+              };
+            });
+            const window = hourly.filter((h) => h.hour >= currentHour - 1 && h.hour <= currentHour + 6);
+            const result = {
+              currentTemp: Math.round(json.current?.temperature_2m ?? 0),
+              currentCloudCover: json.current?.cloud_cover ?? 0,
+              currentSunPct:
+                (json.current?.is_day ?? 1) === 1
+                  ? Math.max(0, 100 - (json.current?.cloud_cover ?? 0))
+                  : 0,
+              hourly: window.length ? window : hourly.slice(0, 8),
+            };
+            weatherCache.set(key, { ts: Date.now(), data: result });
+            return result;
+          })();
+          inflight.set(key, promise);
+          promise.finally(() => inflight.delete(key));
+        }
+        const result = await promise;
         if (cancelled) return;
-
-        const now = new Date();
-        const currentHour = now.getHours();
-
-        const hourly: WeatherHour[] = (json.hourly?.time ?? []).map((t: string, i: number) => {
-          const h = new Date(t).getHours();
-          const cloud = json.hourly.cloud_cover[i] ?? 0;
-          const isDay = (json.hourly.is_day?.[i] ?? 1) === 1;
-          return {
-            time: String(h).padStart(2, "0"),
-            hour: h,
-            cloudCover: cloud,
-            sunPct: isDay ? Math.max(0, 100 - cloud) : 0,
-            icon: iconFor(cloud, isDay),
-            temp: Math.round(json.hourly.temperature_2m[i] ?? 0),
-          };
-        });
-
-        const window = hourly.filter((h) => h.hour >= currentHour - 1 && h.hour <= currentHour + 6);
-
-        setData({
-          currentTemp: Math.round(json.current?.temperature_2m ?? 0),
-          currentCloudCover: json.current?.cloud_cover ?? 0,
-          currentSunPct:
-            (json.current?.is_day ?? 1) === 1 ? Math.max(0, 100 - (json.current?.cloud_cover ?? 0)) : 0,
-          hourly: window.length ? window : hourly.slice(0, 8),
-          loading: false,
-          error: null,
-        });
+        setData({ ...result, loading: false, error: null });
       } catch (e) {
         if (cancelled) return;
         setData((d) => ({ ...d, loading: false, error: (e as Error).message }));
