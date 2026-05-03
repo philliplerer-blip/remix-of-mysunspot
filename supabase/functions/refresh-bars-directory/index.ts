@@ -57,12 +57,9 @@ const INCLUDED_TYPES = [
   "pub",
   "wine_bar",
   "cafe",
-  "coffee_shop",
   "restaurant",
   "bakery",
   "ice_cream_shop",
-  "brewery",
-  "meal_takeaway",
 ];
 
 async function searchNearby(apiKey: string): Promise<PlaceV1[]> {
