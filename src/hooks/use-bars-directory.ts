@@ -10,6 +10,15 @@ export interface DirectoryBar {
   rating: number | null;
   price_level: number | null;
   outdoor_seating: boolean | null;
+  sun_timeline: SunTimelineEntry[] | null;
+  timeline_date: string | null;
+}
+
+export interface SunTimelineEntry {
+  hour: number;
+  sunlit: boolean;
+  sun_elev: number;
+  sun_az: number;
 }
 
 export const useBarsDirectory = () => {
@@ -21,7 +30,7 @@ export const useBarsDirectory = () => {
     (async () => {
       const { data } = await supabase
         .from("bars_directory")
-        .select("id, name, address, lat, lng, rating, price_level, outdoor_seating")
+        .select("id, name, address, lat, lng, rating, price_level, outdoor_seating, sun_timeline, timeline_date")
         .limit(500);
       if (cancelled) return;
       setBars((data ?? []) as DirectoryBar[]);
