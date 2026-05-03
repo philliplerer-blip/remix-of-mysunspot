@@ -33,6 +33,18 @@ const Index = () => {
   const { bars: directoryBars } = useBarsDirectory();
   const weather = useWeather();
   const nowHour = new Date().getHours();
+  const [mapBounds, setMapBounds] = useState<{ north: number; south: number; east: number; west: number } | null>(null);
+
+  const barsInView = useMemo(() => {
+    if (!mapBounds) return directoryBars;
+    return directoryBars.filter(
+      (b) =>
+        b.lat <= mapBounds.north &&
+        b.lat >= mapBounds.south &&
+        b.lng <= mapBounds.east &&
+        b.lng >= mapBounds.west,
+    );
+  }, [directoryBars, mapBounds]);
 
   const findNearestDirectoryBar = (lat: number, lng: number): DirectoryBar | null => {
     if (!directoryBars.length) return null;
@@ -185,6 +197,7 @@ const Index = () => {
             onEditSpot={(spot) => openEditDialog(spot)}
             onSelectDirectoryBar={(bar) => setSelectedDirectoryBar(bar)}
             onLongPress={handleMapLongPress}
+            onBoundsChanged={setMapBounds}
           />
           <div className="absolute left-4 top-4 z-10 flex items-center gap-1 rounded-md bg-espresso/85 px-3 py-1.5 text-xs font-medium text-secondary backdrop-blur">
             <LocateFixed className="size-3" /> Indre By, Copenhagen
