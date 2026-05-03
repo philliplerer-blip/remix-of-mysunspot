@@ -29,6 +29,9 @@ export type Database = {
           outdoor_source: string
           price_level: number | null
           rating: number | null
+          sun_timeline: Json | null
+          timeline_computed_at: string | null
+          timeline_date: string | null
           types: string[] | null
           updated_at: string
           user_ratings_total: number | null
@@ -47,6 +50,9 @@ export type Database = {
           outdoor_source?: string
           price_level?: number | null
           rating?: number | null
+          sun_timeline?: Json | null
+          timeline_computed_at?: string | null
+          timeline_date?: string | null
           types?: string[] | null
           updated_at?: string
           user_ratings_total?: number | null
@@ -65,6 +71,9 @@ export type Database = {
           outdoor_source?: string
           price_level?: number | null
           rating?: number | null
+          sun_timeline?: Json | null
+          timeline_computed_at?: string | null
+          timeline_date?: string | null
           types?: string[] | null
           updated_at?: string
           user_ratings_total?: number | null
