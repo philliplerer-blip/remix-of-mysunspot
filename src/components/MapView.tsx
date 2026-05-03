@@ -12,6 +12,7 @@ interface MapViewProps {
   selectedBarId: number;
   onSelectBar: (id: number) => void;
   onEditSpot: (spot: CustomSpot) => void;
+  onSelectDirectoryBar: (bar: DirectoryBar) => void;
   onLongPress: (latLng: { lat: number; lng: number }) => void;
 }
 
@@ -43,6 +44,7 @@ export const MapView = ({
   selectedBarId,
   onSelectBar,
   onEditSpot,
+  onSelectDirectoryBar,
   onLongPress,
 }: MapViewProps) => {
   const containerRef = useRef<HTMLDivElement>(null);
@@ -55,12 +57,14 @@ export const MapView = ({
   const onLongPressRef = useRef(onLongPress);
   const onSelectBarRef = useRef(onSelectBar);
   const onEditSpotRef = useRef(onEditSpot);
+  const onSelectDirectoryBarRef = useRef(onSelectDirectoryBar);
   const [error, setError] = useState<string | null>(null);
   const [ready, setReady] = useState(false);
 
   onLongPressRef.current = onLongPress;
   onSelectBarRef.current = onSelectBar;
   onEditSpotRef.current = onEditSpot;
+  onSelectDirectoryBarRef.current = onSelectDirectoryBar;
 
   // Init map once
   useEffect(() => {
@@ -248,6 +252,7 @@ export const MapView = ({
           icon,
           zIndex: outdoor ? 50 : 10,
         });
+        marker.addListener("click", () => onSelectDirectoryBarRef.current(bar));
         existing.set(bar.id, marker);
       } else {
         marker.setIcon(icon);
