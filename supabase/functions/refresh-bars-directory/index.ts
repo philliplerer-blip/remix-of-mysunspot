@@ -52,6 +52,19 @@ const FIELD_MASK = [
   "places.reviews",
 ].join(",");
 
+const INCLUDED_TYPES = [
+  "bar",
+  "pub",
+  "wine_bar",
+  "cafe",
+  "coffee_shop",
+  "restaurant",
+  "bakery",
+  "ice_cream_shop",
+  "brewery",
+  "meal_takeaway",
+];
+
 async function searchNearby(apiKey: string): Promise<PlaceV1[]> {
   // Places API (New) searchNearby returns up to 20 results per call
   // and does not support pagination. To get more coverage, we issue
@@ -63,7 +76,7 @@ async function searchNearby(apiKey: string): Promise<PlaceV1[]> {
   for (const dLat of offsets) {
     for (const dLng of offsets) {
       const body = {
-        includedTypes: ["bar"],
+        includedTypes: INCLUDED_TYPES,
         maxResultCount: 20,
         locationRestriction: {
           circle: {
