@@ -8,6 +8,9 @@ import { MapView } from "@/components/MapView";
 import { useFavorites } from "@/hooks/use-favorites";
 import { useCustomSpots } from "@/hooks/use-custom-spots";
 import { useBarsDirectory } from "@/hooks/use-bars-directory";
+import type { DirectoryBar } from "@/hooks/use-bars-directory";
+import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription } from "@/components/ui/sheet";
+import { Star, TreePine } from "lucide-react";
 import { Filter, bars, filters, stateCopy } from "@/lib/bars";
 import { MAP_CENTER, MAP_SPAN, type CustomSpot, type SpotIcon } from "@/lib/spots";
 import { cn } from "@/lib/utils";
@@ -32,6 +35,7 @@ const Index = () => {
   const [spotDialogOpen, setSpotDialogOpen] = useState(false);
   const [pendingPosition, setPendingPosition] = useState<{ x: number; y: number } | null>(null);
   const [editingSpot, setEditingSpot] = useState<CustomSpot | null>(null);
+  const [selectedDirectoryBar, setSelectedDirectoryBar] = useState<DirectoryBar | null>(null);
 
   const openAddDialog = (position: { x: number; y: number } | null) => {
     setEditingSpot(null);
@@ -136,6 +140,7 @@ const Index = () => {
             selectedBarId={activeBar.id}
             onSelectBar={(id) => { setSelected(id); setExpanded(false); }}
             onEditSpot={(spot) => openEditDialog(spot)}
+            onSelectDirectoryBar={(bar) => setSelectedDirectoryBar(bar)}
             onLongPress={handleMapLongPress}
           />
           <div className="absolute left-4 top-4 z-10 flex items-center gap-1 rounded-md bg-espresso/85 px-3 py-1.5 text-xs font-medium text-secondary backdrop-blur">
@@ -206,6 +211,48 @@ const Index = () => {
         initialSpot={editingSpot}
         onDelete={editingSpot ? () => removeSpot(editingSpot.id) : undefined}
       />
+      <Sheet open={!!selectedDirectoryBar} onOpenChange={(open) => !open && setSelectedDirectoryBar(null)}>
+        <SheetContent side="right" className="w-[340px] sm:w-[400px]">
+          {selectedDirectoryBar && (
+            <>
+              <SheetHeader>
+                <SheetTitle>{selectedDirectoryBar.name}</SheetTitle>
+                {selectedDirectoryBar.address && (
+                  <SheetDescription>{selectedDirectoryBar.address}</SheetDescription>
+                )}
+              </SheetHeader>
+              <div className="mt-6 space-y-4 text-sm">
+                <div className="flex items-center gap-2">
+                  <Star className="size-4 text-sun" />
+                  <span>
+                    {selectedDirectoryBar.rating != null
+                      ? `${selectedDirectoryBar.rating} / 5`
+                      : "No rating"}
+                  </span>
+                </div>
+                <div>
+                  <span className="text-muted-foreground">Price: </span>
+                  <span className="font-semibold">
+                    {selectedDirectoryBar.price_level != null
+                      ? "$".repeat(Math.max(1, selectedDirectoryBar.price_level))
+                      : "—"}
+                  </span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <TreePine className={cn("size-4", selectedDirectoryBar.outdoor_seating ? "text-sun" : "text-muted-foreground")} />
+                  <span>
+                    {selectedDirectoryBar.outdoor_seating === true
+                      ? "Outdoor seating available"
+                      : selectedDirectoryBar.outdoor_seating === false
+                        ? "No outdoor seating"
+                        : "Outdoor seating unknown"}
+                  </span>
+                </div>
+              </div>
+            </>
+          )}
+        </SheetContent>
+      </Sheet>
     </main>
   );
 };
