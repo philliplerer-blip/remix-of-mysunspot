@@ -33,6 +33,22 @@ const Index = () => {
   const { bars: directoryBars } = useBarsDirectory();
   const weather = useWeather();
   const nowHour = new Date().getHours();
+
+  const findNearestDirectoryBar = (lat: number, lng: number): DirectoryBar | null => {
+    if (!directoryBars.length) return null;
+    let best: DirectoryBar | null = null;
+    let bestD = Infinity;
+    for (const b of directoryBars) {
+      const dLat = b.lat - lat;
+      const dLng = (b.lng - lng) * Math.cos((lat * Math.PI) / 180);
+      const d = dLat * dLat + dLng * dLng;
+      if (d < bestD) {
+        bestD = d;
+        best = b;
+      }
+    }
+    return best;
+  };
   const [spotDialogOpen, setSpotDialogOpen] = useState(false);
   const [pendingPosition, setPendingPosition] = useState<{ x: number; y: number } | null>(null);
   const [editingSpot, setEditingSpot] = useState<CustomSpot | null>(null);
@@ -210,7 +226,12 @@ const Index = () => {
                 bar={bar}
                 selected={selected === bar.id}
                 isFavorite={favorites.includes(bar.id)}
-                onSelect={() => { setSelected(bar.id); setExpanded(false); }}
+                onSelect={() => {
+                  setSelected(bar.id);
+                  setExpanded(false);
+                  const nearest = findNearestDirectoryBar(bar.lat, bar.lng);
+                  if (nearest) setSelectedDirectoryBar(nearest);
+                }}
                 onToggleFavorite={() => toggleFavorite(bar.id)}
               />
             ))}
