@@ -15,6 +15,8 @@ export interface Bar {
   vibe: string;
   lat: number;
   lng: number;
+  /** Minutes until the bar flips between sun and shade. null = no future change today. */
+  minutesToChange?: number | null;
 }
 
 export const nowHour = 16.35;
