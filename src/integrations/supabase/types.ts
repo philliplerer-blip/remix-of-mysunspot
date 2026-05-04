@@ -182,6 +182,39 @@ export type Database = {
         }
         Relationships: []
       }
+      places_fetch_cache: {
+        Row: {
+          created_at: string
+          id: string
+          last_fetched_at: string
+          lat: number
+          lng: number
+          radius_m: number
+          result_count: number
+          tile_key: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          last_fetched_at?: string
+          lat: number
+          lng: number
+          radius_m: number
+          result_count?: number
+          tile_key: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          last_fetched_at?: string
+          lat?: number
+          lng?: number
+          radius_m?: number
+          result_count?: number
+          tile_key?: string
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           avatar_url: string | null
