@@ -32,6 +32,7 @@ export type Database = {
           sun_timeline: Json | null
           timeline_computed_at: string | null
           timeline_date: string | null
+          timeline_inputs_hash: string | null
           types: string[] | null
           updated_at: string
           user_ratings_total: number | null
@@ -53,6 +54,7 @@ export type Database = {
           sun_timeline?: Json | null
           timeline_computed_at?: string | null
           timeline_date?: string | null
+          timeline_inputs_hash?: string | null
           types?: string[] | null
           updated_at?: string
           user_ratings_total?: number | null
@@ -74,6 +76,7 @@ export type Database = {
           sun_timeline?: Json | null
           timeline_computed_at?: string | null
           timeline_date?: string | null
+          timeline_inputs_hash?: string | null
           types?: string[] | null
           updated_at?: string
           user_ratings_total?: number | null
@@ -179,6 +182,48 @@ export type Database = {
           threshold_pct?: number
           updated_at?: string
           user_id?: string
+        }
+        Relationships: []
+      }
+      overpass_buildings_cache: {
+        Row: {
+          buildings: Json
+          buildings_hash: string
+          created_at: string
+          expires_at: string
+          fetched_at: string
+          id: string
+          lat: number
+          lng: number
+          radius_m: number
+          tile_key: string
+          updated_at: string
+        }
+        Insert: {
+          buildings: Json
+          buildings_hash: string
+          created_at?: string
+          expires_at?: string
+          fetched_at?: string
+          id?: string
+          lat: number
+          lng: number
+          radius_m: number
+          tile_key: string
+          updated_at?: string
+        }
+        Update: {
+          buildings?: Json
+          buildings_hash?: string
+          created_at?: string
+          expires_at?: string
+          fetched_at?: string
+          id?: string
+          lat?: number
+          lng?: number
+          radius_m?: number
+          tile_key?: string
+          updated_at?: string
         }
         Relationships: []
       }
