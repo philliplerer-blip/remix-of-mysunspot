@@ -14,6 +14,13 @@ const corsHeaders = {
 const CENTER = { lat: 55.6833, lng: 12.5833 };
 const RADIUS_M = 3000;
 
+// Cache TTL: skip Google Places calls for tiles fetched within this window.
+const CACHE_TTL_MS = 24 * 60 * 60 * 1000; // 24h
+// Tile precision for cache keys: 2 decimals ≈ ~1.1km at CPH latitude.
+const TILE_PRECISION = 100;
+const tileKey = (lat: number, lng: number, radius: number) =>
+  `${Math.round(lat * TILE_PRECISION) / TILE_PRECISION},${Math.round(lng * TILE_PRECISION) / TILE_PRECISION}@${radius}`;
+
 const OUTDOOR_KEYWORDS = [
   "outdoor", "outdoor seating", "terrace", "terrasse",
   "rooftop", "beer garden", "biergarten", "patio",
@@ -62,47 +69,87 @@ const INCLUDED_TYPES = [
   "ice_cream_shop",
 ];
 
-async function searchNearby(apiKey: string): Promise<PlaceV1[]> {
+async function searchNearby(
+  apiKey: string,
+  supabase: ReturnType<typeof createClient>,
+  force: boolean,
+): Promise<{ places: PlaceV1[]; tilesHit: number; tilesSkipped: number }> {
   // Places API (New) searchNearby returns up to 20 results per call
   // and does not support pagination. To get more coverage, we issue
   // multiple calls over a 3x3 sub-grid covering the radius.
   const all = new Map<string, PlaceV1>();
   const offsets = [-0.012, 0, 0.012]; // ~1.3 km in lat / lng at CPH latitude
   const subRadius = 1500;
+  let tilesHit = 0;
+  let tilesSkipped = 0;
 
-  for (const dLat of offsets) {
-    for (const dLng of offsets) {
-      const body = {
-        includedTypes: INCLUDED_TYPES,
-        maxResultCount: 20,
-        locationRestriction: {
-          circle: {
-            center: { latitude: CENTER.lat + dLat, longitude: CENTER.lng + dLng },
-            radius: subRadius,
-          },
-        },
-      };
-      const res = await fetch("https://places.googleapis.com/v1/places:searchNearby", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "X-Goog-Api-Key": apiKey,
-          "X-Goog-FieldMask": FIELD_MASK,
-        },
-        body: JSON.stringify(body),
-      });
-      const json = await res.json();
-      if (!res.ok) {
-        throw new Error(`Places searchNearby failed (${res.status}): ${JSON.stringify(json)}`);
-      }
-      for (const place of (json.places ?? []) as PlaceV1[]) {
-        if (place.id) all.set(place.id, place);
-      }
-      await sleep(120);
+  // Load existing cache rows in one query
+  const tiles = offsets.flatMap((dLat) =>
+    offsets.map((dLng) => ({
+      lat: CENTER.lat + dLat,
+      lng: CENTER.lng + dLng,
+      key: tileKey(CENTER.lat + dLat, CENTER.lng + dLng, subRadius),
+    })),
+  );
+  const { data: cacheRows } = await supabase
+    .from("places_fetch_cache")
+    .select("tile_key, last_fetched_at")
+    .in("tile_key", tiles.map((t) => t.key));
+  const cacheMap = new Map<string, string>(
+    (cacheRows ?? []).map((r: { tile_key: string; last_fetched_at: string }) => [r.tile_key, r.last_fetched_at]),
+  );
+
+  for (const tile of tiles) {
+    const lastTs = cacheMap.get(tile.key);
+    const fresh = lastTs && Date.now() - new Date(lastTs).getTime() < CACHE_TTL_MS;
+    if (fresh && !force) {
+      tilesSkipped++;
+      continue;
     }
+    const body = {
+      includedTypes: INCLUDED_TYPES,
+      maxResultCount: 20,
+      locationRestriction: {
+        circle: {
+          center: { latitude: tile.lat, longitude: tile.lng },
+          radius: subRadius,
+        },
+      },
+    };
+    const res = await fetch("https://places.googleapis.com/v1/places:searchNearby", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "X-Goog-Api-Key": apiKey,
+        "X-Goog-FieldMask": FIELD_MASK,
+      },
+      body: JSON.stringify(body),
+    });
+    const json = await res.json();
+    if (!res.ok) {
+      throw new Error(`Places searchNearby failed (${res.status}): ${JSON.stringify(json)}`);
+    }
+    const places = (json.places ?? []) as PlaceV1[];
+    for (const place of places) {
+      if (place.id) all.set(place.id, place);
+    }
+    tilesHit++;
+    await supabase.from("places_fetch_cache").upsert(
+      {
+        tile_key: tile.key,
+        lat: tile.lat,
+        lng: tile.lng,
+        radius_m: subRadius,
+        result_count: places.length,
+        last_fetched_at: new Date().toISOString(),
+      },
+      { onConflict: "tile_key" },
+    );
+    await sleep(120);
   }
-  return Array.from(all.values());
+  return { places: Array.from(all.values()), tilesHit, tilesSkipped };
 }
+
 
 function inferOutdoorFromText(text: string): string[] {
   const lower = text.toLowerCase();
@@ -125,8 +172,16 @@ Deno.serve(async (req) => {
       Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!,
     );
 
-    const places = await searchNearby(apiKey);
-    console.log(`Nearby search returned ${places.length} bars`);
+    let force = false;
+    try {
+      if (req.headers.get("content-type")?.includes("application/json")) {
+        const body = await req.json();
+        force = body?.force === true;
+      }
+    } catch { /* no body */ }
+
+    const { places, tilesHit, tilesSkipped } = await searchNearby(apiKey, supabase, force);
+    console.log(`Nearby search: ${places.length} places (tiles hit=${tilesHit}, cached=${tilesSkipped})`);
 
     const rows: Array<Record<string, unknown>> = [];
 
@@ -190,6 +245,8 @@ Deno.serve(async (req) => {
         success: true,
         fetched: places.length,
         upserted: rows.length,
+        tiles_fetched: tilesHit,
+        tiles_cached: tilesSkipped,
         outdoor_count: rows.filter((r) => r.outdoor_seating === true).length,
       }),
       { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } },
