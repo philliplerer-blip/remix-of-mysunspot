@@ -306,16 +306,15 @@ const Index = () => {
           <div className="absolute bottom-4 left-4 z-10 flex max-w-[calc(100%-2rem)] items-center gap-3 rounded-2xl border border-butter/25 bg-espresso/90 p-3 text-secondary backdrop-blur-md">
             <div className="min-w-0">
               <p className="truncate text-sm font-semibold">{activeBar.name}</p>
-              <p className="text-xs text-muted-foreground">{activeBar.dist} · {stateCopy[activeBar.state].label}</p>
+              <p className="text-xs text-secondary/70">{activeBar.dist} · {stateCopy[activeBar.state].label}</p>
             </div>
-            <Button
-              variant={favorites.includes(activeBar.id) ? "glass" : "sun"}
-              size="icon"
+            <button
               onClick={() => toggleFavorite(activeBar.id)}
               aria-label={favorites.includes(activeBar.id) ? "Remove from favorites" : "Save to favorites"}
+              className="grid size-8 shrink-0 place-items-center rounded-full text-secondary transition-transform hover:scale-110"
             >
-              <Heart className={cn("size-4", favorites.includes(activeBar.id) && "fill-current")} />
-            </Button>
+              <Heart className={cn("size-4", favorites.includes(activeBar.id) && "fill-current text-sun")} />
+            </button>
           </div>
         </section>
 
