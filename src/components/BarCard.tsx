@@ -80,7 +80,7 @@ export const BarCard = ({ bar, selected, isFavorite, onSelect, onToggleFavorite,
           <p className="mt-0.5 text-xs text-muted-foreground">{bar.area} · {bar.vibe}</p>
         </div>
         <div className="flex shrink-0 items-center gap-2">
-          <SunScoreIcon score={bar.sunScore ?? 0} />
+          {expanded && <SunScoreIcon score={bar.sunScore ?? 0} />}
           <span className={cn("rounded-full px-2 py-1 text-[0.62rem] font-bold", countdown.tone)}>{countdown.label}</span>
           <button
             onClick={(event) => { event.stopPropagation(); onToggleFavorite(); }}
