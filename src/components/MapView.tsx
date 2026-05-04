@@ -93,6 +93,7 @@ export const MapView = ({
           zoomControl: true,
           gestureHandling: "greedy",
           rotateControl: true,
+          styles: WARM_CREAM_MAP_STYLE,
         });
         mapRef.current = map;
         setReady(true);
