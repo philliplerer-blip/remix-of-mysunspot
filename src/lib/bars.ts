@@ -15,6 +15,8 @@ export interface Bar {
   vibe: string;
   lat: number;
   lng: number;
+  /** Minutes until the bar flips between sun and shade. null = no future change today. */
+  minutesToChange?: number | null;
 }
 
 export const nowHour = 16.35;
@@ -44,4 +46,59 @@ export const formatHour = (hour: number) => {
   const h = Math.floor(hour);
   const m = Math.round((hour - h) * 60);
   return `${h}:${String(m).padStart(2, "0")}`;
+};
+
+export interface SunTimelineEntry {
+  hour: number;
+  sunlit: boolean;
+  sun_elev: number;
+  sun_az?: number;
+}
+
+/**
+ * Decide if a venue is "in the sun" right now / at a given hour, combining:
+ *  - geometric sun position + 3D building shadowing (timeline.sunlit, sun_elev > 0)
+ *  - weather (cloud cover via sunPct)
+ * Threshold: sunPct >= 40 means enough direct sun is reaching the ground.
+ */
+export const SUN_PCT_THRESHOLD = 40;
+
+export const isEffectivelySunny = (
+  entry: SunTimelineEntry | undefined,
+  sunPctForHour: number | undefined,
+): boolean => {
+  if (!entry) return false;
+  if (entry.sun_elev <= 0) return false;
+  if (!entry.sunlit) return false;
+  if (sunPctForHour == null) return true; // no weather yet — fall back to geometry
+  return sunPctForHour >= SUN_PCT_THRESHOLD;
+};
+
+/**
+ * Walks the timeline forward from `nowHourFloat` and returns the moment (in hours
+ * since midnight, local) where the effective sun state flips. Returns null if it
+ * never flips before the timeline ends.
+ *
+ * Hour boundaries are the resolution we have for both the building-shadow timeline
+ * and the hourly weather forecast, so the precision is ±~1 hour but expressed in
+ * minutes for display.
+ */
+export const findNextSunChange = (
+  timeline: SunTimelineEntry[],
+  weatherByHour: Map<number, number>,
+  nowHourFloat: number,
+): { atHour: number; nextState: boolean } | null => {
+  if (!timeline || timeline.length === 0) return null;
+  const byHour = new Map(timeline.map((e) => [e.hour, e]));
+  const currentHour = Math.floor(nowHourFloat);
+  const currentState = isEffectivelySunny(byHour.get(currentHour), weatherByHour.get(currentHour));
+  for (let h = currentHour + 1; h <= 23; h++) {
+    const entry = byHour.get(h);
+    if (!entry) continue;
+    const state = isEffectivelySunny(entry, weatherByHour.get(h));
+    if (state !== currentState) {
+      return { atHour: h, nextState: state };
+    }
+  }
+  return null;
 };

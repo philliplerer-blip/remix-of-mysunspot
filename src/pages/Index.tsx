@@ -11,7 +11,7 @@ import { useBarsDirectory } from "@/hooks/use-bars-directory";
 import { useWeather } from "@/hooks/use-weather";
 import { useGeolocation } from "@/hooks/use-geolocation";
 import type { DirectoryBar } from "@/hooks/use-bars-directory";
-import { Filter, bars, filters, stateCopy, type Bar, type SunState } from "@/lib/bars";
+import { Filter, bars, filters, stateCopy, isEffectivelySunny, findNextSunChange, type Bar, type SunState, type SunTimelineEntry } from "@/lib/bars";
 import { MAP_CENTER, MAP_SPAN, type CustomSpot, type SpotIcon } from "@/lib/spots";
 import { cn } from "@/lib/utils";
 
@@ -66,15 +66,35 @@ const Index = () => {
           Math.sin(dLng / 2) ** 2;
       return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
     };
-    const currentHour = new Date().getHours();
+    const nowDate = new Date();
+    const currentHour = nowDate.getHours();
+    const nowHourFloat = currentHour + nowDate.getMinutes() / 60;
+    const weatherByHour = new Map<number, number>(
+      weather.hourly.map((h) => [h.hour, h.sunPct]),
+    );
     return barsInView.map((b, idx) => {
-      const tl = (b.sun_timeline ?? []) as Array<{ hour: number; sunlit: boolean; sun_elev: number }>;
-      const sunHours = tl.filter((e) => e.sun_elev > 0 && e.sunlit).map((e) => e.hour);
-      const start = sunHours.length ? sunHours[0] : 12;
-      const end = sunHours.length ? sunHours[sunHours.length - 1] + 1 : 18;
-      let state: SunState = "shade";
-      if (sunHours.includes(currentHour)) state = "sun";
-      else if (sunHours.some((h) => h > currentHour)) state = "soon";
+      const tl = (b.sun_timeline ?? []) as SunTimelineEntry[];
+      // Effective-sun hours combine 3D shadow geometry with hourly cloud cover.
+      const effHours = tl
+        .filter((e) => isEffectivelySunny(e, weatherByHour.get(e.hour)))
+        .map((e) => e.hour);
+      const start = effHours.length ? effHours[0] : 12;
+      const end = effHours.length ? effHours[effHours.length - 1] + 1 : 18;
+
+      const currentEntry = tl.find((e) => e.hour === currentHour);
+      const sunNow = isEffectivelySunny(currentEntry, weatherByHour.get(currentHour));
+
+      let state: SunState;
+      if (sunNow) state = "sun";
+      else if (effHours.some((h) => h > currentHour)) state = "soon";
+      else state = "shade";
+
+      // Time until the next flip, derived from the same shadow + weather model.
+      const change = findNextSunChange(tl, weatherByHour, nowHourFloat);
+      const minutesToChange = change
+        ? Math.max(0, Math.round((change.atHour - nowHourFloat) * 60))
+        : null;
+
       const dKm = haversineKm(MAP_CENTER.lat, MAP_CENTER.lng, b.lat, b.lng);
       const dist = dKm < 1 ? `${Math.round(dKm * 1000)} m` : `${dKm.toFixed(1)} km`;
       const priceKr = b.price_level != null ? 50 + b.price_level * 15 : 65;
@@ -92,9 +112,10 @@ const Index = () => {
         vibe: b.outdoor_seating ? "Outdoor seating" : "Indoor venue",
         lat: b.lat,
         lng: b.lng,
+        minutesToChange,
       };
     });
-  }, [barsInView]);
+  }, [barsInView, weather.hourly, now]);
 
   const findNearestDirectoryBar = (lat: number, lng: number): DirectoryBar | null => {
     if (!directoryBars.length) return null;

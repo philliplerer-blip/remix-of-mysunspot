@@ -18,31 +18,25 @@ export const BarCard = ({ bar, selected, isFavorite, onSelect, onToggleFavorite,
   const width = ((bar.end - bar.start) / 11) * 100;
   const now = ((nowHour - 11) / 11) * 100;
 
-  const nowDate = new Date();
-  const realNow = nowDate.getHours() + nowDate.getMinutes() / 60;
-  const fmtCountdown = (hoursAhead: number) => {
-    const totalMin = Math.max(0, Math.round(hoursAhead * 60));
+  const fmtCountdown = (totalMin: number) => {
     const h = Math.floor(totalMin / 60);
     const m = totalMin % 60;
     if (h <= 0) return `${m}m`;
+    if (m === 0) return `${h}h`;
     return `${h}h ${m}m`;
   };
-  let countdown: { label: string; tone: string } | null = null;
+  const mins = bar.minutesToChange;
+  let countdown: { label: string; tone: string };
   if (bar.state === "sun") {
-    countdown = {
-      label: `Sun ends in ${fmtCountdown(bar.end - realNow)}`,
-      tone: "bg-sun text-espresso",
-    };
+    countdown = mins != null
+      ? { label: `Sun ends in ${fmtCountdown(mins)}`, tone: "bg-sun text-espresso" }
+      : { label: "Sunny rest of day", tone: "bg-sun text-espresso" };
   } else if (bar.state === "soon") {
-    countdown = {
-      label: `Sun in ${fmtCountdown(bar.start - realNow)}`,
-      tone: "bg-flame text-primary-foreground",
-    };
+    countdown = mins != null
+      ? { label: `Sun in ${fmtCountdown(mins)}`, tone: "bg-flame text-primary-foreground" }
+      : { label: "Sun later", tone: "bg-flame text-primary-foreground" };
   } else {
-    countdown = {
-      label: "No sun left today",
-      tone: "bg-shade text-primary-foreground",
-    };
+    countdown = { label: "No sun left today", tone: "bg-shade text-primary-foreground" };
   }
 
   return (
