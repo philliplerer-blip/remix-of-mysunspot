@@ -3,6 +3,32 @@ import { Bar, formatHour, nowHour, stateCopy } from "@/lib/bars";
 import type { DirectoryBar } from "@/hooks/use-bars-directory";
 import { cn } from "@/lib/utils";
 
+/**
+ * Sun emoji that fills bottom-up based on a 0–100 score. We layer two copies:
+ * a faded gray sun underneath, and a colored sun clipped to the bottom `score%`.
+ */
+const SunScoreIcon = ({ score }: { score: number }) => {
+  const pct = Math.max(0, Math.min(100, score));
+  return (
+    <div
+      className="relative grid size-9 place-items-center"
+      role="img"
+      aria-label={`Sun score ${pct} out of 100`}
+      title={`Sun score: ${pct}/100`}
+    >
+      <span className="absolute inset-0 grid place-items-center text-2xl leading-none opacity-25 grayscale">
+        ☀️
+      </span>
+      <span
+        className="absolute inset-0 grid place-items-center text-2xl leading-none transition-[clip-path] duration-500"
+        style={{ clipPath: `inset(${100 - pct}% 0 0 0)` }}
+      >
+        ☀️
+      </span>
+    </div>
+  );
+};
+
 interface BarCardProps {
   bar: Bar;
   selected?: boolean;
@@ -54,6 +80,7 @@ export const BarCard = ({ bar, selected, isFavorite, onSelect, onToggleFavorite,
           <p className="mt-0.5 text-xs text-muted-foreground">{bar.area} · {bar.vibe}</p>
         </div>
         <div className="flex shrink-0 items-center gap-2">
+          <SunScoreIcon score={bar.sunScore ?? 0} />
           <span className={cn("rounded-full px-2 py-1 text-[0.62rem] font-bold", countdown.tone)}>{countdown.label}</span>
           <button
             onClick={(event) => { event.stopPropagation(); onToggleFavorite(); }}

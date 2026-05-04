@@ -11,7 +11,8 @@ import { useBarsDirectory } from "@/hooks/use-bars-directory";
 import { useWeather } from "@/hooks/use-weather";
 import { useGeolocation } from "@/hooks/use-geolocation";
 import type { DirectoryBar } from "@/hooks/use-bars-directory";
-import { Filter, bars, filters, stateCopy, isEffectivelySunny, findNextSunChange, type Bar, type SunState, type SunTimelineEntry } from "@/lib/bars";
+import { Filter, bars, filters, stateCopy, isEffectivelySunny, findNextSunChange, computeSunScore, type Bar, type SunState, type SunTimelineEntry } from "@/lib/bars";
+import type { SunScoreEntry } from "@/hooks/use-bars-directory";
 import { MAP_CENTER, MAP_SPAN, type CustomSpot, type SpotIcon } from "@/lib/spots";
 import { cn } from "@/lib/utils";
 
@@ -74,6 +75,7 @@ const Index = () => {
     );
     return barsInView.map((b, idx) => {
       const tl = (b.sun_timeline ?? []) as SunTimelineEntry[];
+      const stl = (b.sun_score_timeline ?? []) as SunScoreEntry[];
       // Effective-sun hours combine 3D shadow geometry with hourly cloud cover.
       const effHours = tl
         .filter((e) => isEffectivelySunny(e, weatherByHour.get(e.hour)))
@@ -98,6 +100,8 @@ const Index = () => {
       const dKm = haversineKm(MAP_CENTER.lat, MAP_CENTER.lng, b.lat, b.lng);
       const dist = dKm < 1 ? `${Math.round(dKm * 1000)} m` : `${dKm.toFixed(1)} km`;
       const priceKr = b.price_level != null ? 50 + b.price_level * 15 : 65;
+      const scoreEntry = stl.find((e) => e.hour === currentHour);
+      const sunScore = computeSunScore(scoreEntry, weatherByHour.get(currentHour));
       return {
         id: idx,
         name: b.name,
@@ -113,6 +117,7 @@ const Index = () => {
         lat: b.lat,
         lng: b.lng,
         minutesToChange,
+        sunScore,
       };
     });
   }, [barsInView, weather.hourly, now]);

@@ -12,6 +12,10 @@ export interface DirectoryBar {
   outdoor_seating: boolean | null;
   sun_timeline: SunTimelineEntry[] | null;
   timeline_date: string | null;
+  sun_score_timeline: SunScoreEntry[] | null;
+  orientation_deg: number | null;
+  orientation_confidence: number | null;
+  orientation_method: string | null;
 }
 
 export interface SunTimelineEntry {
@@ -19,6 +23,16 @@ export interface SunTimelineEntry {
   sunlit: boolean;
   sun_elev: number;
   sun_az: number;
+}
+
+export interface SunScoreEntry {
+  hour: number;
+  s_direct: number;
+  s_angle: number;
+  s_duration: number;
+  s_comfort: number;
+  base_score: number;
+  minutes_of_sun_left: number;
 }
 
 export const useBarsDirectory = () => {
@@ -30,7 +44,7 @@ export const useBarsDirectory = () => {
     (async () => {
       const { data } = await supabase
         .from("bars_directory")
-        .select("id, name, address, lat, lng, rating, price_level, outdoor_seating, sun_timeline, timeline_date")
+        .select("id, name, address, lat, lng, rating, price_level, outdoor_seating, sun_timeline, timeline_date, sun_score_timeline, orientation_deg, orientation_confidence, orientation_method")
         .limit(500);
       if (cancelled) return;
       setBars((data ?? []) as unknown as DirectoryBar[]);

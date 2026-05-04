@@ -25,10 +25,14 @@ export type Database = {
           lat: number
           lng: number
           name: string
+          orientation_confidence: number | null
+          orientation_deg: number | null
+          orientation_method: string | null
           outdoor_seating: boolean | null
           outdoor_source: string
           price_level: number | null
           rating: number | null
+          sun_score_timeline: Json | null
           sun_timeline: Json | null
           timeline_computed_at: string | null
           timeline_date: string | null
@@ -47,10 +51,14 @@ export type Database = {
           lat: number
           lng: number
           name: string
+          orientation_confidence?: number | null
+          orientation_deg?: number | null
+          orientation_method?: string | null
           outdoor_seating?: boolean | null
           outdoor_source?: string
           price_level?: number | null
           rating?: number | null
+          sun_score_timeline?: Json | null
           sun_timeline?: Json | null
           timeline_computed_at?: string | null
           timeline_date?: string | null
@@ -69,10 +77,14 @@ export type Database = {
           lat?: number
           lng?: number
           name?: string
+          orientation_confidence?: number | null
+          orientation_deg?: number | null
+          orientation_method?: string | null
           outdoor_seating?: boolean | null
           outdoor_source?: string
           price_level?: number | null
           rating?: number | null
+          sun_score_timeline?: Json | null
           sun_timeline?: Json | null
           timeline_computed_at?: string | null
           timeline_date?: string | null

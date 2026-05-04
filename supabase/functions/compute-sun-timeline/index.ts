@@ -25,6 +25,10 @@ const SEARCH_RADIUS_M = 250; // around each venue
 const AZ_TOLERANCE_DEG = 4; // how wide a "ray" we test
 const CLUSTER_FETCH_RADIUS_M = 500; // larger so neighbouring venues share cache
 const CACHE_TTL_DAYS = 30;
+const ORIENTATION_RAY_MAX_M = 200; // cap for open-ray distance probe
+const ORIENTATION_RAY_STEP_M = 10;
+const ORIENTATION_RAY_COUNT = 36; // 10° steps for open-ray fallback
+const SCORE_VERSION = "v1"; // bump to invalidate cached scores
 
 async function sha256Hex(input: string): Promise<string> {
   const buf = new TextEncoder().encode(input);
@@ -75,6 +79,220 @@ function bearingDeg(from: { lat: number; lng: number }, to: { lat: number; lng: 
 function angDiff(a: number, b: number) {
   let d = Math.abs(a - b) % 360;
   return d > 180 ? 360 - d : d;
+}
+
+// Move a lat/lng point by `distM` meters along compass `bearingDeg`.
+function moveMeters(
+  origin: { lat: number; lng: number },
+  bearingDeg: number,
+  distM: number,
+): { lat: number; lng: number } {
+  const R = 6371000;
+  const br = (bearingDeg * Math.PI) / 180;
+  const φ1 = (origin.lat * Math.PI) / 180;
+  const λ1 = (origin.lng * Math.PI) / 180;
+  const dr = distM / R;
+  const φ2 = Math.asin(
+    Math.sin(φ1) * Math.cos(dr) + Math.cos(φ1) * Math.sin(dr) * Math.cos(br),
+  );
+  const λ2 =
+    λ1 +
+    Math.atan2(
+      Math.sin(br) * Math.sin(dr) * Math.cos(φ1),
+      Math.cos(dr) - Math.sin(φ1) * Math.sin(φ2),
+    );
+  return { lat: (φ2 * 180) / Math.PI, lng: (λ2 * 180) / Math.PI };
+}
+
+// Standard ray/segment intersection in (x=lng, y=lat) approximate planar space.
+// Good enough for ~hundreds of meters in a city.
+function segmentsIntersect(
+  p1: { x: number; y: number },
+  p2: { x: number; y: number },
+  p3: { x: number; y: number },
+  p4: { x: number; y: number },
+): boolean {
+  const d1x = p2.x - p1.x, d1y = p2.y - p1.y;
+  const d2x = p4.x - p3.x, d2y = p4.y - p3.y;
+  const denom = d1x * d2y - d1y * d2x;
+  if (Math.abs(denom) < 1e-12) return false;
+  const s = ((p3.x - p1.x) * d2y - (p3.y - p1.y) * d2x) / denom;
+  const t = ((p3.x - p1.x) * d1y - (p3.y - p1.y) * d1x) / denom;
+  return s >= 0 && s <= 1 && t >= 0 && t <= 1;
+}
+
+function pointInPolygon(
+  point: { lat: number; lng: number },
+  poly: Array<{ lat: number; lng: number }>,
+): boolean {
+  let inside = false;
+  for (let i = 0, j = poly.length - 1; i < poly.length; j = i++) {
+    const xi = poly[i].lng, yi = poly[i].lat;
+    const xj = poly[j].lng, yj = poly[j].lat;
+    const intersect =
+      yi > point.lat !== yj > point.lat &&
+      point.lng < ((xj - xi) * (point.lat - yi)) / (yj - yi + 1e-15) + xi;
+    if (intersect) inside = !inside;
+  }
+  return inside;
+}
+
+/**
+ * Cast a ray outward from `venue` along compass `bearing` and return the
+ * distance (m) to the first building edge it hits, capped at `maxM`.
+ */
+function rayDistanceToBuilding(
+  venue: { lat: number; lng: number },
+  bearing: number,
+  buildings: Building[],
+  maxM = ORIENTATION_RAY_MAX_M,
+): number {
+  const end = moveMeters(venue, bearing, maxM);
+  const p1 = { x: venue.lng, y: venue.lat };
+  const p2 = { x: end.lng, y: end.lat };
+  let best = maxM;
+  for (const b of buildings) {
+    for (let i = 0; i < b.pts.length; i++) {
+      const a = b.pts[i];
+      const c = b.pts[(i + 1) % b.pts.length];
+      const p3 = { x: a.lng, y: a.lat };
+      const p4 = { x: c.lng, y: c.lat };
+      if (!segmentsIntersect(p1, p2, p3, p4)) continue;
+      // Approximate hit distance: midpoint of edge to venue.
+      const midLat = (a.lat + c.lat) / 2;
+      const midLng = (a.lng + c.lng) / 2;
+      const d = haversine(venue, { lat: midLat, lng: midLng });
+      if (d < best) best = d;
+    }
+  }
+  return best;
+}
+
+/**
+ * Estimate which direction the bar's outdoor seating likely faces.
+ *
+ * Strategy:
+ *  1. Find a building containing (or closest to) the venue. Walk its edges,
+ *     compute outward normals, and probe each with a ray. Pick the longest.
+ *  2. If no containing building or scores are weak, fall back to a 36-direction
+ *     open-ray scan around the bar and pick the longest unobstructed bearing.
+ *
+ * Confidence = (best - mean) / best, clamped to [0,1] — high when one direction
+ * dominates, low when several look similar.
+ */
+function estimateOrientation(
+  venue: { lat: number; lng: number },
+  buildings: Building[],
+): { orientation: number; confidence: number; method: string } {
+  // Step 1: try polygon-edge method.
+  let containing: Building | null = null;
+  for (const b of buildings) {
+    if (pointInPolygon(venue, b.pts)) { containing = b; break; }
+  }
+  // If not inside any, pick the nearest building within ~30m (terrace abuts wall).
+  if (!containing) {
+    let bestD = 30;
+    for (const b of buildings) {
+      for (const p of b.pts) {
+        const d = haversine(venue, p);
+        if (d < bestD) { bestD = d; containing = b; }
+      }
+    }
+  }
+
+  const edgeResults: Array<{ bearing: number; dist: number }> = [];
+  if (containing) {
+    const pts = containing.pts;
+    // Polygon centroid for inside/outside normal disambiguation.
+    let cLat = 0, cLng = 0;
+    for (const p of pts) { cLat += p.lat; cLng += p.lng; }
+    cLat /= pts.length; cLng /= pts.length;
+    for (let i = 0; i < pts.length; i++) {
+      const a = pts[i];
+      const c = pts[(i + 1) % pts.length];
+      const midLat = (a.lat + c.lat) / 2;
+      const midLng = (a.lng + c.lng) / 2;
+      // Edge bearing → outward normal is edge bearing ± 90°. Pick the one
+      // pointing away from the centroid.
+      const edgeBear = bearingDeg({ lat: a.lat, lng: a.lng }, { lat: c.lat, lng: c.lng });
+      const n1 = (edgeBear + 90) % 360;
+      const n2 = (edgeBear + 270) % 360;
+      const probe1 = moveMeters({ lat: midLat, lng: midLng }, n1, 5);
+      const probe2 = moveMeters({ lat: midLat, lng: midLng }, n2, 5);
+      const d1 = haversine({ lat: cLat, lng: cLng }, probe1);
+      const d2 = haversine({ lat: cLat, lng: cLng }, probe2);
+      const outward = d1 >= d2 ? n1 : n2;
+      // Cast from a point a few meters outside the wall along the normal.
+      const start = moveMeters({ lat: midLat, lng: midLng }, outward, 3);
+      const dist = rayDistanceToBuilding(start, outward, buildings);
+      edgeResults.push({ bearing: outward, dist });
+    }
+  }
+
+  // Pick best edge result if it dominates.
+  if (edgeResults.length > 0) {
+    edgeResults.sort((a, b) => b.dist - a.dist);
+    const best = edgeResults[0];
+    const mean =
+      edgeResults.reduce((s, r) => s + r.dist, 0) / edgeResults.length;
+    const confidence = best.dist > 0 ? Math.max(0, Math.min(1, (best.dist - mean) / best.dist)) : 0;
+    if (best.dist >= 15) {
+      return {
+        orientation: Math.round(best.bearing * 10) / 10,
+        confidence: Math.round(confidence * 100) / 100,
+        method: "polygon_edge",
+      };
+    }
+  }
+
+  // Step 2: open-ray fallback — 36 bearings around the venue.
+  const rays: Array<{ bearing: number; dist: number }> = [];
+  for (let i = 0; i < ORIENTATION_RAY_COUNT; i++) {
+    const bearing = (i * 360) / ORIENTATION_RAY_COUNT;
+    rays.push({ bearing, dist: rayDistanceToBuilding(venue, bearing, buildings) });
+  }
+  rays.sort((a, b) => b.dist - a.dist);
+  const best = rays[0];
+  const mean = rays.reduce((s, r) => s + r.dist, 0) / rays.length;
+  const confidence = best.dist > 0 ? Math.max(0, Math.min(1, (best.dist - mean) / best.dist)) : 0;
+  return {
+    orientation: Math.round(best.bearing * 10) / 10,
+    confidence: Math.round(confidence * 100) / 100,
+    method: "open_ray",
+  };
+}
+
+/**
+ * Per-hour partial sun score. Weather is applied client-side at render time
+ * so the cached score doesn't go stale when clouds change.
+ *
+ * Returns components in 0..1 plus a base score (no weather) in 0..100, using
+ * the spec's weights with cloudFactor = 1 (clear-sky baseline).
+ */
+function scoreComponents(
+  sunlit: boolean,
+  sunElev: number,
+  sunAz: number,
+  orientation: number,
+  minutesOfSunLeft: number,
+) {
+  const sDirect = sunlit && sunElev > 0 ? 1 : 0;
+  const angleDiffDeg = angDiff(sunAz, orientation); // 0..180
+  const sAngle = sDirect ? Math.max(0, Math.cos((angleDiffDeg * Math.PI) / 180)) : 0;
+  const sDuration = Math.min(1, Math.max(0, minutesOfSunLeft) / 120);
+  let sComfort = 0.6;
+  if (sunElev > 0 && sunElev < 10) sComfort = 0.3;
+  else if (sunElev >= 10 && sunElev <= 45) sComfort = 1.0;
+  // Clear-sky baseline (cloudFactor=1). Final score combines weather client-side.
+  const baseScore =
+    100 * (0.35 * sDirect + 0.25 * sAngle + 0.2 * sDuration + 0.2 * sComfort);
+  return {
+    s_direct: sDirect,
+    s_angle: Math.round(sAngle * 1000) / 1000,
+    s_duration: Math.round(sDuration * 1000) / 1000,
+    s_comfort: Math.round(sComfort * 1000) / 1000,
+    base_score: Math.round(baseScore * 10) / 10,
+  };
 }
 
 function parseHeight(tags: Record<string, string>): number {
@@ -228,6 +446,24 @@ function computeTimeline(
   return out;
 }
 
+function buildScoreTimeline(
+  timeline: Array<{ hour: number; sunlit: boolean; sun_elev: number; sun_az: number }>,
+  orientation: number,
+) {
+  // Precompute remaining sunlit minutes per hour (forward simulation in 60-min steps).
+  // For each hour h, count consecutive future hours (incl. h) where sunlit && elev>0.
+  const remaining: number[] = new Array(timeline.length).fill(0);
+  for (let i = timeline.length - 1; i >= 0; i--) {
+    const e = timeline[i];
+    const lit = e.sunlit && e.sun_elev > 0;
+    remaining[i] = lit ? (remaining[i + 1] ?? 0) + 60 : 0;
+  }
+  return timeline.map((e, i) => {
+    const c = scoreComponents(e.sunlit, e.sun_elev, e.sun_az, orientation, remaining[i]);
+    return { hour: e.hour, ...c, minutes_of_sun_left: remaining[i] };
+  });
+}
+
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response("ok", { headers: corsHeaders });
 
@@ -316,7 +552,7 @@ Deno.serve(async (req) => {
     const clusterHash = cluster?.hash ?? "empty";
     // Inputs hash: anything that, if changed, must invalidate the cached trajectory.
     const inputsHash = await sha256Hex(
-      `${v.lat.toFixed(6)}|${v.lng.toFixed(6)}|${todayStr}|${clusterHash}`,
+      `${SCORE_VERSION}|${v.lat.toFixed(6)}|${v.lng.toFixed(6)}|${todayStr}|${clusterHash}`,
     );
     if (
       !body.force &&
@@ -331,10 +567,16 @@ Deno.serve(async (req) => {
       b.pts.some((p) => haversine({ lat: v.lat, lng: v.lng }, p) <= SEARCH_RADIUS_M),
     );
     const timeline = computeTimeline({ lat: v.lat, lng: v.lng }, today, near);
+    const orient = estimateOrientation({ lat: v.lat, lng: v.lng }, near);
+    const scoreTimeline = buildScoreTimeline(timeline, orient.orientation);
     await admin
       .from("bars_directory")
       .update({
         sun_timeline: timeline,
+        sun_score_timeline: scoreTimeline,
+        orientation_deg: orient.orientation,
+        orientation_confidence: orient.confidence,
+        orientation_method: orient.method,
         timeline_date: todayStr,
         timeline_computed_at: new Date().toISOString(),
         timeline_inputs_hash: inputsHash,
