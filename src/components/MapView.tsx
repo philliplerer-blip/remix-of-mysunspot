@@ -38,6 +38,30 @@ const stateColor: Record<Bar["state"], string> = {
   shade: "#D9695C",
 };
 
+// "Warm Cream" map style — matches the app's light/paper UI.
+// Cream land, soft mint water, butter roads, espresso labels.
+const WARM_CREAM_MAP_STYLE: google.maps.MapTypeStyle[] = [
+  { elementType: "geometry", stylers: [{ color: "#FCE6C2" }] },
+  { elementType: "labels.text.fill", stylers: [{ color: "#3D1A00" }] },
+  { elementType: "labels.text.stroke", stylers: [{ color: "#FFF1DB" }, { weight: 3 }] },
+  { elementType: "labels.icon", stylers: [{ visibility: "off" }] },
+  { featureType: "administrative", elementType: "geometry.stroke", stylers: [{ color: "#E0A66B" }] },
+  { featureType: "administrative.land_parcel", stylers: [{ visibility: "off" }] },
+  { featureType: "poi", stylers: [{ visibility: "off" }] },
+  { featureType: "poi.park", elementType: "geometry", stylers: [{ color: "#B8DCD0" }] },
+  { featureType: "poi.park", elementType: "labels.text.fill", stylers: [{ color: "#2E6655" }] },
+  { featureType: "road", elementType: "geometry", stylers: [{ color: "#FFD58A" }] },
+  { featureType: "road", elementType: "geometry.stroke", stylers: [{ color: "#E5B36A" }] },
+  { featureType: "road.arterial", elementType: "geometry", stylers: [{ color: "#FFC97A" }] },
+  { featureType: "road.highway", elementType: "geometry", stylers: [{ color: "#FF9F40" }] },
+  { featureType: "road.highway", elementType: "geometry.stroke", stylers: [{ color: "#D97A1F" }] },
+  { featureType: "road.local", elementType: "geometry", stylers: [{ color: "#FFE3B0" }] },
+  { featureType: "transit", stylers: [{ visibility: "off" }] },
+  { featureType: "landscape.man_made", elementType: "geometry", stylers: [{ color: "#F4D9A8" }] },
+  { featureType: "water", elementType: "geometry", stylers: [{ color: "#9FCDC2" }] },
+  { featureType: "water", elementType: "labels.text.fill", stylers: [{ color: "#1F4D44" }] },
+];
+
 export const MapView = ({
   visibleBars,
   spots,
@@ -93,6 +117,7 @@ export const MapView = ({
           zoomControl: true,
           gestureHandling: "greedy",
           rotateControl: true,
+          styles: WARM_CREAM_MAP_STYLE,
         });
         mapRef.current = map;
         setReady(true);
