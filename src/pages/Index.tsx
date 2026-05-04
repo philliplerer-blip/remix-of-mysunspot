@@ -253,7 +253,17 @@ const Index = () => {
             selectedBarId={activeBar.id}
             onSelectBar={(id) => { setSelected(id); setExpanded(false); }}
             onEditSpot={(spot) => openEditDialog(spot)}
-            onSelectDirectoryBar={(bar) => setSelectedDirectoryBar(bar)}
+            onSelectDirectoryBar={(bar) => {
+              setSelectedDirectoryBar(bar);
+              const idx = barsInView.findIndex((b) => b.id === bar.id);
+              if (idx >= 0) {
+                setSelected(idx);
+                setExpanded(false);
+                requestAnimationFrame(() => {
+                  cardRefs.current[idx]?.scrollIntoView({ behavior: "smooth", block: "center" });
+                });
+              }
+            }}
             onLongPress={handleMapLongPress}
             onBoundsChanged={setMapBounds}
           />
@@ -294,21 +304,41 @@ const Index = () => {
             {visibleBars.length} bar{visibleBars.length === 1 ? "" : "s"} in view
           </div>
           <div className="mt-3 space-y-2">
-            {visibleBars.map((bar) => (
-              <BarCard
-                key={bar.id}
-                bar={bar}
-                selected={selected === bar.id}
-                isFavorite={favorites.includes(bar.id)}
-                onSelect={() => {
-                  setSelected(bar.id);
-                  setExpanded(false);
-                  const match = barsInView[bar.id] ?? findNearestDirectoryBar(bar.lat, bar.lng);
-                  if (match) setSelectedDirectoryBar(match);
-                }}
-                onToggleFavorite={() => toggleFavorite(bar.id)}
-              />
-            ))}
+            {visibleBars.map((bar) => {
+              const isExpanded = selected === bar.id;
+              const match = isExpanded
+                ? (barsInView[bar.id] ?? findNearestDirectoryBar(bar.lat, bar.lng))
+                : null;
+              return (
+                <div
+                  key={bar.id}
+                  ref={(el) => { cardRefs.current[bar.id] = el; }}
+                >
+                  <BarCard
+                    bar={bar}
+                    selected={isExpanded}
+                    expanded={isExpanded}
+                    details={match}
+                    isFavorite={favorites.includes(bar.id)}
+                    onSelect={() => {
+                      if (selected === bar.id) {
+                        setSelected(-1);
+                        setSelectedDirectoryBar(null);
+                        return;
+                      }
+                      setSelected(bar.id);
+                      setExpanded(false);
+                      const m = barsInView[bar.id] ?? findNearestDirectoryBar(bar.lat, bar.lng);
+                      if (m) setSelectedDirectoryBar(m);
+                      requestAnimationFrame(() => {
+                        cardRefs.current[bar.id]?.scrollIntoView({ behavior: "smooth", block: "nearest" });
+                      });
+                    }}
+                    onToggleFavorite={() => toggleFavorite(bar.id)}
+                  />
+                </div>
+              );
+            })}
           </div>
 
           {visibleBars.length === 0 && (
