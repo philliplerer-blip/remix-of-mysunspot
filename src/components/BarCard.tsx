@@ -17,6 +17,34 @@ export const BarCard = ({ bar, selected, isFavorite, onSelect, onToggleFavorite,
   const start = ((bar.start - 11) / 11) * 100;
   const width = ((bar.end - bar.start) / 11) * 100;
   const now = ((nowHour - 11) / 11) * 100;
+
+  const nowDate = new Date();
+  const realNow = nowDate.getHours() + nowDate.getMinutes() / 60;
+  const fmtCountdown = (hoursAhead: number) => {
+    const totalMin = Math.max(0, Math.round(hoursAhead * 60));
+    const h = Math.floor(totalMin / 60);
+    const m = totalMin % 60;
+    if (h <= 0) return `${m}m`;
+    return `${h}h ${m}m`;
+  };
+  let countdown: { label: string; tone: string } | null = null;
+  if (bar.state === "sun") {
+    countdown = {
+      label: `Sun ends in ${fmtCountdown(bar.end - realNow)}`,
+      tone: "bg-sun text-espresso",
+    };
+  } else if (bar.state === "soon") {
+    countdown = {
+      label: `Sun in ${fmtCountdown(bar.start - realNow)}`,
+      tone: "bg-flame text-primary-foreground",
+    };
+  } else {
+    countdown = {
+      label: "No sun left today",
+      tone: "bg-shade text-primary-foreground",
+    };
+  }
+
   return (
     <article
       onClick={onSelect}
@@ -32,7 +60,7 @@ export const BarCard = ({ bar, selected, isFavorite, onSelect, onToggleFavorite,
           <p className="mt-0.5 text-xs text-muted-foreground">{bar.area} · {bar.vibe}</p>
         </div>
         <div className="flex shrink-0 items-center gap-2">
-          <span className={cn("rounded-full px-2 py-1 text-[0.62rem] font-bold", stateCopy[bar.state].tone)}>{stateCopy[bar.state].label}</span>
+          <span className={cn("rounded-full px-2 py-1 text-[0.62rem] font-bold", countdown.tone)}>{countdown.label}</span>
           <button
             onClick={(event) => { event.stopPropagation(); onToggleFavorite(); }}
             className={cn(
@@ -58,7 +86,9 @@ export const BarCard = ({ bar, selected, isFavorite, onSelect, onToggleFavorite,
       </div>
       <div className="mt-2 flex items-center justify-between text-xs text-muted-foreground">
         <span>{formatHour(bar.start)}–{formatHour(bar.end)}</span>
-        <span className="flex items-center gap-1"><MapPin className="size-3" /> {bar.dist} · {bar.beer} kr</span>
+        <span className="flex items-center gap-1">
+          <MapPin className="size-3" /> {bar.dist}{expanded ? ` · ${bar.beer} kr` : ""}
+        </span>
       </div>
       <div
         className={cn(
