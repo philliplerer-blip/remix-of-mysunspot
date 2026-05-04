@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { ChevronDown, Heart, LocateFixed, Navigation, Plus, Search, Sparkles, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { BarCard } from "@/components/BarCard";
@@ -11,8 +11,6 @@ import { useBarsDirectory } from "@/hooks/use-bars-directory";
 import { useWeather } from "@/hooks/use-weather";
 import { useGeolocation } from "@/hooks/use-geolocation";
 import type { DirectoryBar } from "@/hooks/use-bars-directory";
-import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription } from "@/components/ui/sheet";
-import { Star, TreePine } from "lucide-react";
 import { Filter, bars, filters, stateCopy, type Bar, type SunState } from "@/lib/bars";
 import { MAP_CENTER, MAP_SPAN, type CustomSpot, type SpotIcon } from "@/lib/spots";
 import { cn } from "@/lib/utils";
