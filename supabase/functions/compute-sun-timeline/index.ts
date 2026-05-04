@@ -235,7 +235,7 @@ Deno.serve(async (req) => {
   const key = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
   const admin = createClient(url, key, { auth: { persistSession: false } });
 
-  let body: { force?: boolean; limit?: number } = {};
+  let body: { force?: boolean; limit?: number; offset?: number } = {};
   try { body = await req.json(); } catch {}
 
   const today = new Date();
@@ -246,7 +246,10 @@ Deno.serve(async (req) => {
     .from("bars_directory")
     .select("id, lat, lng, timeline_date, timeline_inputs_hash")
     .order("name");
-  if (body.limit) q = q.limit(body.limit);
+  if (body.limit) {
+    const from = body.offset ?? 0;
+    q = q.range(from, from + body.limit - 1);
+  }
   const { data: venues, error } = await q;
   if (error) {
     return new Response(JSON.stringify({ error: error.message }), {
@@ -272,29 +275,37 @@ Deno.serve(async (req) => {
     }
   }
 
-  // Resolve buildings per cluster, preferring the cache.
+  // Resolve buildings per cluster with limited concurrency (Overpass is slow).
   let cacheHits = 0;
   let cacheMisses = 0;
-  for (const c of clusters.values()) {
-    try {
-      const got = await getBuildingsCached(
-        admin,
-        c.key,
-        c.lat,
-        c.lng,
-        CLUSTER_FETCH_RADIUS_M,
-        !!body.force,
-      );
-      c.buildings = got.buildings;
-      c.hash = got.hash;
-      c.fromCache = got.fromCache;
-      if (got.fromCache) cacheHits++; else cacheMisses++;
-    } catch (e) {
-      console.error("overpass failed", c.key, e);
-      c.buildings = [];
-      c.hash = "empty";
-    }
-  }
+  const clusterList = Array.from(clusters.values());
+  const CONCURRENCY = 4;
+  let cursor = 0;
+  await Promise.all(
+    Array.from({ length: CONCURRENCY }, async () => {
+      while (cursor < clusterList.length) {
+        const c = clusterList[cursor++];
+        try {
+          const got = await getBuildingsCached(
+            admin,
+            c.key,
+            c.lat,
+            c.lng,
+            CLUSTER_FETCH_RADIUS_M,
+            !!body.force,
+          );
+          c.buildings = got.buildings;
+          c.hash = got.hash;
+          c.fromCache = got.fromCache;
+          if (got.fromCache) cacheHits++; else cacheMisses++;
+        } catch (e) {
+          console.error("overpass failed", c.key, e);
+          c.buildings = [];
+          c.hash = "empty";
+        }
+      }
+    }),
+  );
 
   let processed = 0;
   let skipped = 0;
