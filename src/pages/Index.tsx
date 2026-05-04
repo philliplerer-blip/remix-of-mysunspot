@@ -308,14 +308,13 @@ const Index = () => {
               <p className="truncate text-sm font-semibold">{activeBar.name}</p>
               <p className="text-xs text-muted-foreground">{activeBar.dist} · {stateCopy[activeBar.state].label}</p>
             </div>
-            <Button
-              variant={favorites.includes(activeBar.id) ? "glass" : "sun"}
-              size="icon"
+            <button
               onClick={() => toggleFavorite(activeBar.id)}
               aria-label={favorites.includes(activeBar.id) ? "Remove from favorites" : "Save to favorites"}
+              className="grid size-8 shrink-0 place-items-center rounded-full text-secondary transition-transform hover:scale-110"
             >
-              <Heart className={cn("size-4", favorites.includes(activeBar.id) && "fill-current")} />
-            </Button>
+              <Heart className={cn("size-4", favorites.includes(activeBar.id) && "fill-current text-sun")} />
+            </button>
           </div>
         </section>
 
