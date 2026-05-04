@@ -115,6 +115,7 @@ const Index = () => {
   const [pendingPosition, setPendingPosition] = useState<{ x: number; y: number } | null>(null);
   const [editingSpot, setEditingSpot] = useState<CustomSpot | null>(null);
   const [selectedDirectoryBar, setSelectedDirectoryBar] = useState<DirectoryBar | null>(null);
+  const cardRefs = useRef<Record<number, HTMLDivElement | null>>({});
 
   const openAddDialog = (position: { x: number; y: number } | null) => {
     setEditingSpot(null);
