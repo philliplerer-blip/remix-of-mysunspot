@@ -311,9 +311,9 @@ const Index = () => {
             <button
               onClick={() => toggleFavorite(activeBar.id)}
               aria-label={favorites.includes(activeBar.id) ? "Remove from favorites" : "Save to favorites"}
-              className="grid size-8 shrink-0 place-items-center rounded-full text-secondary transition-transform hover:scale-110"
+              className="grid size-8 shrink-0 place-items-center rounded-full text-secondary/80 transition-transform hover:scale-110"
             >
-              <Heart className={cn("size-4", favorites.includes(activeBar.id) && "fill-current text-sun")} />
+              <Heart className={cn("size-4", favorites.includes(activeBar.id) && "fill-secondary text-secondary")} />
             </button>
           </div>
         </section>
