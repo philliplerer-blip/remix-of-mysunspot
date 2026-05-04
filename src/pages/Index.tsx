@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { ChevronDown, Heart, LocateFixed, Navigation, Plus, Search, Sparkles, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { BarCard } from "@/components/BarCard";
@@ -11,8 +11,6 @@ import { useBarsDirectory } from "@/hooks/use-bars-directory";
 import { useWeather } from "@/hooks/use-weather";
 import { useGeolocation } from "@/hooks/use-geolocation";
 import type { DirectoryBar } from "@/hooks/use-bars-directory";
-import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription } from "@/components/ui/sheet";
-import { Star, TreePine } from "lucide-react";
 import { Filter, bars, filters, stateCopy, type Bar, type SunState } from "@/lib/bars";
 import { MAP_CENTER, MAP_SPAN, type CustomSpot, type SpotIcon } from "@/lib/spots";
 import { cn } from "@/lib/utils";
@@ -117,6 +115,7 @@ const Index = () => {
   const [pendingPosition, setPendingPosition] = useState<{ x: number; y: number } | null>(null);
   const [editingSpot, setEditingSpot] = useState<CustomSpot | null>(null);
   const [selectedDirectoryBar, setSelectedDirectoryBar] = useState<DirectoryBar | null>(null);
+  const cardRefs = useRef<Record<number, HTMLDivElement | null>>({});
 
   const openAddDialog = (position: { x: number; y: number } | null) => {
     setEditingSpot(null);
@@ -255,7 +254,17 @@ const Index = () => {
             selectedBarId={activeBar.id}
             onSelectBar={(id) => { setSelected(id); setExpanded(false); }}
             onEditSpot={(spot) => openEditDialog(spot)}
-            onSelectDirectoryBar={(bar) => setSelectedDirectoryBar(bar)}
+            onSelectDirectoryBar={(bar) => {
+              setSelectedDirectoryBar(bar);
+              const idx = barsInView.findIndex((b) => b.id === bar.id);
+              if (idx >= 0) {
+                setSelected(idx);
+                setExpanded(false);
+                requestAnimationFrame(() => {
+                  cardRefs.current[idx]?.scrollIntoView({ behavior: "smooth", block: "center" });
+                });
+              }
+            }}
             onLongPress={handleMapLongPress}
             onBoundsChanged={setMapBounds}
           />
@@ -296,21 +305,41 @@ const Index = () => {
             {visibleBars.length} bar{visibleBars.length === 1 ? "" : "s"} in view
           </div>
           <div className="mt-3 space-y-2">
-            {visibleBars.map((bar) => (
-              <BarCard
-                key={bar.id}
-                bar={bar}
-                selected={selected === bar.id}
-                isFavorite={favorites.includes(bar.id)}
-                onSelect={() => {
-                  setSelected(bar.id);
-                  setExpanded(false);
-                  const match = barsInView[bar.id] ?? findNearestDirectoryBar(bar.lat, bar.lng);
-                  if (match) setSelectedDirectoryBar(match);
-                }}
-                onToggleFavorite={() => toggleFavorite(bar.id)}
-              />
-            ))}
+            {visibleBars.map((bar) => {
+              const isExpanded = selected === bar.id;
+              const match = isExpanded
+                ? (barsInView[bar.id] ?? findNearestDirectoryBar(bar.lat, bar.lng))
+                : null;
+              return (
+                <div
+                  key={bar.id}
+                  ref={(el) => { cardRefs.current[bar.id] = el; }}
+                >
+                  <BarCard
+                    bar={bar}
+                    selected={isExpanded}
+                    expanded={isExpanded}
+                    details={match}
+                    isFavorite={favorites.includes(bar.id)}
+                    onSelect={() => {
+                      if (selected === bar.id) {
+                        setSelected(-1);
+                        setSelectedDirectoryBar(null);
+                        return;
+                      }
+                      setSelected(bar.id);
+                      setExpanded(false);
+                      const m = barsInView[bar.id] ?? findNearestDirectoryBar(bar.lat, bar.lng);
+                      if (m) setSelectedDirectoryBar(m);
+                      requestAnimationFrame(() => {
+                        cardRefs.current[bar.id]?.scrollIntoView({ behavior: "smooth", block: "nearest" });
+                      });
+                    }}
+                    onToggleFavorite={() => toggleFavorite(bar.id)}
+                  />
+                </div>
+              );
+            })}
           </div>
 
           {visibleBars.length === 0 && (
@@ -335,115 +364,6 @@ const Index = () => {
         initialSpot={editingSpot}
         onDelete={editingSpot ? () => removeSpot(editingSpot.id) : undefined}
       />
-      <Sheet open={!!selectedDirectoryBar} onOpenChange={(open) => !open && setSelectedDirectoryBar(null)}>
-        <SheetContent side="right" className="w-[340px] sm:w-[400px]">
-          {selectedDirectoryBar && (
-            <>
-              <SheetHeader>
-                <SheetTitle>{selectedDirectoryBar.name}</SheetTitle>
-                {selectedDirectoryBar.address && (
-                  <SheetDescription>{selectedDirectoryBar.address}</SheetDescription>
-                )}
-              </SheetHeader>
-              <div className="mt-6 space-y-4 text-sm">
-                <div className="flex items-center gap-2">
-                  <Star className="size-4 text-sun" />
-                  <span>
-                    {selectedDirectoryBar.rating != null
-                      ? `${selectedDirectoryBar.rating} / 5`
-                      : "No rating"}
-                  </span>
-                </div>
-                <div>
-                  <span className="text-muted-foreground">Price: </span>
-                  <span className="font-semibold">
-                    {selectedDirectoryBar.price_level != null
-                      ? "$".repeat(Math.max(1, selectedDirectoryBar.price_level))
-                      : "—"}
-                  </span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <TreePine className={cn("size-4", selectedDirectoryBar.outdoor_seating ? "text-sun" : "text-muted-foreground")} />
-                  <span>
-                    {selectedDirectoryBar.outdoor_seating === true
-                      ? "Outdoor seating available"
-                      : selectedDirectoryBar.outdoor_seating === false
-                        ? "No outdoor seating"
-                        : "Outdoor seating unknown"}
-                  </span>
-                </div>
-                <div>
-                  <div className="mb-2 flex items-center justify-between">
-                    <span className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
-                      Sun timeline
-                    </span>
-                    {selectedDirectoryBar.timeline_date && (
-                      <span className="text-[0.65rem] text-muted-foreground">
-                        {selectedDirectoryBar.timeline_date}
-                      </span>
-                    )}
-                  </div>
-                  {selectedDirectoryBar.sun_timeline && selectedDirectoryBar.sun_timeline.length > 0 && (() => {
-                    const tl = selectedDirectoryBar.sun_timeline;
-                    const day = tl.filter((e) => e.sun_elev > 0);
-                    const sunHours = day.filter((e) => e.sunlit).map((e) => e.hour);
-                    const shadeHours = day.filter((e) => !e.sunlit).map((e) => e.hour);
-                    const fmt = (h: number) => `${String(h).padStart(2, "0")}:00`;
-                    const Row = ({ label, value }: { label: string; value: string }) => (
-                      <div className="flex justify-between">
-                        <span className="text-muted-foreground">{label}</span>
-                        <span className="font-medium">{value}</span>
-                      </div>
-                    );
-                    return (
-                      <div className="mb-3 space-y-1 rounded-md border border-border bg-muted/30 p-3 text-xs">
-                        <Row label="Sunrise" value={day.length ? fmt(day[0].hour) : "—"} />
-                        <Row label="Sunset" value={day.length ? fmt(day[day.length - 1].hour) : "—"} />
-                        <Row label="First sunlit hour" value={sunHours.length ? fmt(sunHours[0]) : "No direct sun"} />
-                        <Row label="Last sunlit hour" value={sunHours.length ? fmt(sunHours[sunHours.length - 1]) : "No direct sun"} />
-                        <Row label="First shade hour" value={shadeHours.length ? fmt(shadeHours[0]) : "Sunny all day"} />
-                        <Row label="Last shade hour" value={shadeHours.length ? fmt(shadeHours[shadeHours.length - 1]) : "Sunny all day"} />
-                        <Row label="Total sunlit hours" value={`${sunHours.length}h`} />
-                      </div>
-                    );
-                  })()}
-                  {selectedDirectoryBar.sun_timeline && selectedDirectoryBar.sun_timeline.length > 0 ? (
-                    <div className="grid grid-cols-12 gap-1">
-                      {selectedDirectoryBar.sun_timeline.map((entry) => {
-                        const isDay = entry.sun_elev > 0;
-                        const sunlit = isDay && entry.sunlit;
-                        return (
-                          <div
-                            key={entry.hour}
-                            className={cn(
-                              "flex flex-col items-center gap-0.5 rounded-md border py-1 text-[0.6rem]",
-                              !isDay
-                                ? "border-border bg-muted/40 text-muted-foreground"
-                                : sunlit
-                                  ? "border-sun/40 bg-sun/15 text-sun"
-                                  : "border-border bg-muted text-muted-foreground",
-                            )}
-                            title={`${entry.hour}:00 · ${!isDay ? "Night" : sunlit ? "Sun" : "Shade"}`}
-                          >
-                            <span className="text-sm leading-none">
-                              {!isDay ? "🌙" : sunlit ? "☀️" : "🌑"}
-                            </span>
-                            <span>{entry.hour}</span>
-                          </div>
-                        );
-                      })}
-                    </div>
-                  ) : (
-                    <p className="text-xs text-muted-foreground">
-                      Sun timeline not yet computed for this venue.
-                    </p>
-                  )}
-                </div>
-              </div>
-            </>
-          )}
-        </SheetContent>
-      </Sheet>
     </main>
   );
 };

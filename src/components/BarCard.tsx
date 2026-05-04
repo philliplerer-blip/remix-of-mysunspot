@@ -1,5 +1,6 @@
-import { Heart, MapPin, Sun, Sunset } from "lucide-react";
+import { Heart, MapPin, Star, Sun, Sunset, TreePine } from "lucide-react";
 import { Bar, formatHour, nowHour, stateCopy } from "@/lib/bars";
+import type { DirectoryBar } from "@/hooks/use-bars-directory";
 import { cn } from "@/lib/utils";
 
 interface BarCardProps {
@@ -8,9 +9,11 @@ interface BarCardProps {
   isFavorite: boolean;
   onSelect?: () => void;
   onToggleFavorite: () => void;
+  expanded?: boolean;
+  details?: DirectoryBar | null;
 }
 
-export const BarCard = ({ bar, selected, isFavorite, onSelect, onToggleFavorite }: BarCardProps) => {
+export const BarCard = ({ bar, selected, isFavorite, onSelect, onToggleFavorite, expanded, details }: BarCardProps) => {
   const start = ((bar.start - 11) / 11) * 100;
   const width = ((bar.end - bar.start) / 11) * 100;
   const now = ((nowHour - 11) / 11) * 100;
@@ -20,6 +23,7 @@ export const BarCard = ({ bar, selected, isFavorite, onSelect, onToggleFavorite 
       className={cn(
         "cursor-pointer rounded-2xl border bg-card p-3 transition-all hover:-translate-y-0.5 hover:shadow-sun",
         selected ? "border-primary shadow-sun" : "border-border/80",
+        expanded && "scale-[1.01] shadow-sun",
       )}
     >
       <div className="flex items-start justify-between gap-3">
@@ -55,6 +59,89 @@ export const BarCard = ({ bar, selected, isFavorite, onSelect, onToggleFavorite 
       <div className="mt-2 flex items-center justify-between text-xs text-muted-foreground">
         <span>{formatHour(bar.start)}–{formatHour(bar.end)}</span>
         <span className="flex items-center gap-1"><MapPin className="size-3" /> {bar.dist} · {bar.beer} kr</span>
+      </div>
+      <div
+        className={cn(
+          "grid transition-all duration-300 ease-out",
+          expanded ? "mt-3 grid-rows-[1fr] opacity-100" : "grid-rows-[0fr] opacity-0",
+        )}
+      >
+        <div className="overflow-hidden">
+          {details ? (
+            <div className="space-y-3 border-t border-border/80 pt-3 text-sm animate-fade-in">
+              {details.address && (
+                <p className="text-xs text-muted-foreground">{details.address}</p>
+              )}
+              <div className="flex flex-wrap items-center gap-x-4 gap-y-2 text-xs">
+                <span className="flex items-center gap-1">
+                  <Star className="size-3.5 text-sun" />
+                  {details.rating != null ? `${details.rating} / 5` : "No rating"}
+                </span>
+                <span>
+                  <span className="text-muted-foreground">Price: </span>
+                  <span className="font-semibold">
+                    {details.price_level != null
+                      ? "$".repeat(Math.max(1, details.price_level))
+                      : "—"}
+                  </span>
+                </span>
+                <span className="flex items-center gap-1">
+                  <TreePine className={cn("size-3.5", details.outdoor_seating ? "text-sun" : "text-muted-foreground")} />
+                  {details.outdoor_seating === true
+                    ? "Outdoor seating"
+                    : details.outdoor_seating === false
+                      ? "No outdoor seating"
+                      : "Outdoor unknown"}
+                </span>
+              </div>
+              <div>
+                <div className="mb-2 flex items-center justify-between">
+                  <span className="text-[0.62rem] font-semibold uppercase tracking-wide text-muted-foreground">
+                    Sun timeline
+                  </span>
+                  {details.timeline_date && (
+                    <span className="text-[0.62rem] text-muted-foreground">{details.timeline_date}</span>
+                  )}
+                </div>
+                {details.sun_timeline && details.sun_timeline.length > 0 ? (
+                  <div className="grid grid-cols-12 gap-1">
+                    {details.sun_timeline.map((entry) => {
+                      const isDay = entry.sun_elev > 0;
+                      const sunlit = isDay && entry.sunlit;
+                      return (
+                        <div
+                          key={entry.hour}
+                          className={cn(
+                            "flex flex-col items-center gap-0.5 rounded-md border py-1 text-[0.6rem]",
+                            !isDay
+                              ? "border-border bg-muted/40 text-muted-foreground"
+                              : sunlit
+                                ? "border-sun/40 bg-sun/15 text-sun"
+                                : "border-border bg-muted text-muted-foreground",
+                          )}
+                          title={`${entry.hour}:00 · ${!isDay ? "Night" : sunlit ? "Sun" : "Shade"}`}
+                        >
+                          <span className="text-sm leading-none">
+                            {!isDay ? "🌙" : sunlit ? "☀️" : "🌑"}
+                          </span>
+                          <span>{entry.hour}</span>
+                        </div>
+                      );
+                    })}
+                  </div>
+                ) : (
+                  <p className="text-xs text-muted-foreground">
+                    Sun timeline not yet computed for this venue.
+                  </p>
+                )}
+              </div>
+            </div>
+          ) : expanded ? (
+            <div className="border-t border-border/80 pt-3 text-xs text-muted-foreground animate-fade-in">
+              Loading details…
+            </div>
+          ) : null}
+        </div>
       </div>
     </article>
   );
