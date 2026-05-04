@@ -17,6 +17,8 @@ export interface Bar {
   lng: number;
   /** Minutes until the bar flips between sun and shade. null = no future change today. */
   minutesToChange?: number | null;
+  /** 0–100 sun score for "right now", weather-adjusted. */
+  sunScore?: number;
 }
 
 export const nowHour = 16.35;
@@ -101,4 +103,34 @@ export const findNextSunChange = (
     }
   }
   return null;
+};
+
+export interface SunScoreEntryLite {
+  hour: number;
+  s_direct: number;
+  s_angle: number;
+  s_duration: number;
+  s_comfort: number;
+  base_score: number;
+}
+
+/**
+ * Combine the cached per-hour score (clear-sky baseline) with live cloud cover
+ * to produce a final 0–100 score. The S_weather term replaces S_direct in the
+ * spec's weighted sum; everything else stays the same.
+ */
+export const computeSunScore = (
+  entry: SunScoreEntryLite | undefined,
+  sunPctForHour: number | undefined,
+): number => {
+  if (!entry) return 0;
+  const cloudFactor = sunPctForHour == null ? 1 : Math.max(0, Math.min(1, sunPctForHour / 100));
+  const sWeather = entry.s_direct * cloudFactor;
+  const score =
+    100 *
+    (0.35 * sWeather +
+      0.25 * entry.s_angle +
+      0.2 * entry.s_duration +
+      0.2 * entry.s_comfort);
+  return Math.max(0, Math.min(100, Math.round(score)));
 };
