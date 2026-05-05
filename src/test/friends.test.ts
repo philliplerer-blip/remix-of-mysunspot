@@ -95,12 +95,13 @@ d("friends + presence", () => {
     if (pending) {
       await bob.client.functions.invoke("friends-actions/respond", { body: { friendshipId: pending.id, action: "accept" } });
     }
-    // Bob inserts an already-expired session (allowed by check: expires_at must be > started_at, so fudge started_at)
-    // We instead insert a 5-minute session, then update expires_at to the past via owner-update.
-    const future = new Date(Date.now() + 5 * 60_000).toISOString();
-    const { data: row } = await bob.client.from("presence_sessions")
-      .insert({ user_id: bob.userId, activity: "stale", expires_at: future }).select().single();
-    await bob.client.from("presence_sessions").update({ expires_at: new Date(Date.now() - 1000).toISOString() }).eq("id", row!.id);
+    // Insert a session that is ALREADY expired by setting both started_at and expires_at in the past.
+    // Constraint requires expires_at > started_at AND expires_at <= started_at + 4h.
+    const startedAt = new Date(Date.now() - 10 * 60_000).toISOString(); // 10 min ago
+    const expiresAt = new Date(Date.now() - 5 * 60_000).toISOString();  // 5 min ago (still > started_at)
+    const { data: row, error: insErr } = await bob.client.from("presence_sessions")
+      .insert({ user_id: bob.userId, activity: "stale", started_at: startedAt, expires_at: expiresAt }).select().single();
+    expect(insErr).toBeNull();
     // Alice queries active view — must not see the now-expired row
     const { data: viaView } = await alice.client.from("active_presence_sessions").select("*").eq("user_id", bob.userId);
     expect(viaView ?? []).toHaveLength(0);
@@ -116,9 +117,19 @@ d("friends + presence", () => {
     await alice.client.from("friendships").insert({
       user_a: a, user_b: b, requested_by: alice.userId, status: "blocked",
     });
-    // Carol now tries to friend Alice — must be rejected
-    const { data, error } = await carol.client.functions.invoke("friends-actions/by-handle", { body: { handle: alice.handle } });
-    const msg = (data as { error?: string })?.error ?? error?.message ?? "";
-    expect(String(msg).toLowerCase()).toContain("blocked");
+    // Carol now tries to friend Alice — must be rejected. Use raw fetch to read the error body.
+    const { data: { session } } = await carol.client.auth.getSession();
+    const res = await fetch(`${SUPABASE_URL}/functions/v1/friends-actions/by-handle`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        apikey: SUPABASE_ANON!,
+        Authorization: `Bearer ${session?.access_token}`,
+      },
+      body: JSON.stringify({ handle: alice.handle }),
+    });
+    expect(res.status).toBe(403);
+    const body = await res.json();
+    expect(String(body.error).toLowerCase()).toContain("blocked");
   });
 }, 60_000);
