@@ -5,6 +5,8 @@ import { BarCard } from "@/components/BarCard";
 import { BottomNav } from "@/components/BottomNav";
 import { AddSpotDialog } from "@/components/AddSpotDialog";
 import { MapView } from "@/components/MapView";
+import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
+import { Input } from "@/components/ui/input";
 import { useFavorites } from "@/hooks/use-favorites";
 import { useCustomSpots } from "@/hooks/use-custom-spots";
 import { useBarsDirectory } from "@/hooks/use-bars-directory";
@@ -138,6 +140,8 @@ const Index = () => {
     return best;
   };
   const [spotDialogOpen, setSpotDialogOpen] = useState(false);
+  const [searchOpen, setSearchOpen] = useState(false);
+  const [searchQuery, setSearchQuery] = useState("");
   const [pendingPosition, setPendingPosition] = useState<{ x: number; y: number } | null>(null);
   const [editingSpot, setEditingSpot] = useState<CustomSpot | null>(null);
   const [selectedDirectoryBar, setSelectedDirectoryBar] = useState<DirectoryBar | null>(null);
@@ -212,7 +216,7 @@ const Index = () => {
                 {geo.source === "gps" ? "Your location" : "Copenhagen"} · {now.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
               </p>
             </div>
-            <Button variant="glass" size="icon" aria-label="Search sunny bars" className="shrink-0"><Search className="size-4" /></Button>
+            <Button variant="glass" size="icon" aria-label="Search sunny bars" className="shrink-0" onClick={() => setSearchOpen(true)}><Search className="size-4" /></Button>
           </div>
         </header>
 
@@ -383,6 +387,59 @@ const Index = () => {
         initialSpot={editingSpot}
         onDelete={editingSpot ? () => removeSpot(editingSpot.id) : undefined}
       />
+      <Sheet open={searchOpen} onOpenChange={setSearchOpen}>
+        <SheetContent side="left" className="w-[88vw] max-w-[380px] p-0 flex flex-col bg-background">
+          <SheetHeader className="border-b border-border px-4 py-4">
+            <SheetTitle className="font-display text-xl">Search bars</SheetTitle>
+            <div className="relative mt-2">
+              <Search className="absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
+              <Input
+                autoFocus
+                placeholder="Search by name or area"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="pl-9"
+              />
+            </div>
+            <p className="text-[0.68rem] text-muted-foreground">Sorted by distance from you</p>
+          </SheetHeader>
+          <div className="flex-1 overflow-y-auto px-2 py-2">
+            {(() => {
+              const q = searchQuery.trim().toLowerCase();
+              const list = [...directoryBarsAsBars]
+                .filter((b) => !q || b.name.toLowerCase().includes(q) || b.area.toLowerCase().includes(q))
+                .sort((a, b) => {
+                  const da = (a.lat - geo.lat) ** 2 + (a.lng - geo.lng) ** 2;
+                  const db = (b.lat - geo.lat) ** 2 + (b.lng - geo.lng) ** 2;
+                  return da - db;
+                });
+              if (list.length === 0) {
+                return <p className="px-3 py-6 text-center text-sm text-muted-foreground">No matches</p>;
+              }
+              return list.map((b) => (
+                <button
+                  key={b.id}
+                  onClick={() => {
+                    setSelected(b.id);
+                    setSearchOpen(false);
+                    setExpanded(false);
+                    requestAnimationFrame(() => {
+                      cardRefs.current[b.id]?.scrollIntoView({ behavior: "smooth", block: "center" });
+                    });
+                  }}
+                  className="flex w-full items-center justify-between gap-3 rounded-xl px-3 py-2.5 text-left transition-colors hover:bg-muted"
+                >
+                  <div className="min-w-0">
+                    <p className="truncate text-sm font-semibold text-foreground">{b.name}</p>
+                    <p className="truncate text-xs text-muted-foreground">{b.area} · {stateCopy[b.state].label}</p>
+                  </div>
+                  <span className="shrink-0 text-xs text-muted-foreground">{b.dist}</span>
+                </button>
+              ));
+            })()}
+          </div>
+        </SheetContent>
+      </Sheet>
     </main>
   );
 };
