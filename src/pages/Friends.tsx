@@ -202,8 +202,8 @@ export default function Friends() {
   if (!profile) return null;
 
   return (
-    <main className="min-h-screen bg-app-gradient px-4 py-4 text-foreground sm:py-8">
-      <section className="mx-auto flex h-[calc(100dvh-2rem)] sm:h-[calc(100dvh-4rem)] w-full max-w-[430px] flex-col overflow-hidden rounded-[2rem] border border-butter/60 bg-background shadow-panel animate-rise-in">
+    <main className="h-app overflow-hidden bg-app-gradient px-0 pl-safe pr-safe text-foreground sm:px-4 sm:py-8">
+      <section className="mx-auto flex h-full w-full max-w-[430px] flex-col overflow-hidden border-butter/60 bg-background shadow-panel animate-rise-in sm:h-[calc(100dvh-4rem)] sm:rounded-[2rem] sm:border">
         <header className="bg-espresso px-5 pb-5 pt-3 text-secondary">
           <div className="flex items-center justify-between text-[0.7rem] text-muted-foreground">
             <span>Your circle</span>
