@@ -188,37 +188,28 @@ const Index = () => {
     visibleBars.find((bar) => bar.id === selected) ?? visibleBars[0] ?? bars[0];
 
   return (
-    <main className="h-[100dvh] overflow-hidden bg-app-gradient px-0 text-foreground sm:px-4 sm:py-8">
+    <main className="h-app overflow-hidden bg-app-gradient px-0 pl-safe pr-safe text-foreground sm:px-4 sm:py-8">
       <section className="mx-auto flex h-full w-full max-w-[430px] flex-col overflow-hidden border-butter/60 bg-background shadow-panel animate-rise-in sm:h-[calc(100dvh-4rem)] sm:rounded-[2rem] sm:border">
-        <header className="bg-espresso px-5 pb-4 text-secondary pt-safe">
-          <div className="flex items-center justify-between text-[0.7rem] text-muted-foreground">
-            <span>
-              {now.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
-            </span>
-            <span>
-              {now.toLocaleDateString([], { weekday: "short", day: "numeric", month: "short" })} ·{" "}
-              {now.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
-            </span>
-          </div>
-          <div className="mt-4 flex items-end justify-between gap-4">
-            <div>
-              <p className="flex items-center gap-1 text-xs font-medium text-flame"><Sparkles className="size-3" /> Live sun finder</p>
-              <h1 className="mt-1 font-display text-3xl font-semibold tracking-normal text-secondary">Sunny bars</h1>
-              <p className="text-xs text-muted-foreground">
-                {geo.source === "gps" ? "Your location · live weather" : "Copenhagen · default location"}
+        <header className="bg-espresso px-4 pb-3 text-secondary pt-safe xs:px-5">
+          <div className="flex items-center justify-between gap-3">
+            <div className="min-w-0">
+              <p className="flex items-center gap-1 text-[0.68rem] font-medium text-flame"><Sparkles className="size-3" /> Live sun finder</p>
+              <h1 className="mt-0.5 truncate font-display text-2xl font-semibold tracking-normal text-secondary xs:text-[1.65rem]">Sunny bars</h1>
+              <p className="truncate text-[0.68rem] text-muted-foreground">
+                {geo.source === "gps" ? "Your location" : "Copenhagen"} · {now.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
               </p>
             </div>
-            <Button variant="glass" size="icon" aria-label="Search sunny bars"><Search className="size-4" /></Button>
+            <Button variant="glass" size="icon" aria-label="Search sunny bars" className="shrink-0"><Search className="size-4" /></Button>
           </div>
         </header>
 
-        <div className="bg-espresso-soft px-5 pb-4">
-          <div className="flex items-center gap-3 rounded-xl border border-butter/25 bg-cream/10 p-3 text-secondary backdrop-blur">
-            <div className="grid size-11 place-items-center rounded-full bg-sun-gradient text-xl shadow-sun">
+        <div className="bg-espresso-soft px-4 pb-3 xs:px-5">
+          <div className="flex items-center gap-3 rounded-xl border border-butter/25 bg-cream/10 px-3 py-2 text-secondary backdrop-blur">
+            <div className="grid size-9 shrink-0 place-items-center rounded-full bg-sun-gradient text-lg shadow-sun">
               {weather.loading ? "☀️" : iconForCloud(weather.currentCloudCover, weather.currentSunPct > 0)}
             </div>
             <div className="min-w-0 flex-1">
-              <p className="text-sm font-semibold">
+              <p className="truncate text-sm font-semibold">
                 {weather.loading
                   ? "Loading weather…"
                   : weather.currentSunPct >= 70
@@ -227,32 +218,30 @@ const Index = () => {
                       ? "Patchy sun, grab a spot"
                       : "Mostly cloudy right now"}
               </p>
-              <p className="text-xs text-muted-foreground">
-                {weather.loading
-                  ? "Live conditions in Copenhagen"
-                  : `${weather.currentCloudCover}% cloud cover · ${weather.currentTemp}°C`}
+              <p className="truncate text-[0.68rem] text-muted-foreground">
+                {weather.loading ? "Live conditions" : `${weather.currentCloudCover}% cloud · ${weather.currentTemp}°C`}
               </p>
             </div>
-            <div className="text-right">
-              <p className="text-xl font-semibold text-sun">
+            <div className="shrink-0 text-right">
+              <p className="text-lg font-semibold leading-none text-sun">
                 {weather.loading ? "—" : `${weather.currentSunPct}%`}
               </p>
-              <p className="text-[0.62rem] text-muted-foreground">possible sun</p>
+              <p className="text-[0.6rem] text-muted-foreground">sun</p>
             </div>
           </div>
 
         </div>
 
-        <nav className="flex gap-2 overflow-x-auto bg-espresso-soft px-5 pb-4 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden" aria-label="Bar filters">
+        <nav className="flex gap-2 overflow-x-auto bg-espresso-soft px-4 pb-3 xs:px-5 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden" aria-label="Bar filters">
           {filters.map((item) => (
-            <button key={item.key} onClick={() => setFilter(item.key)} className={cn("whitespace-nowrap rounded-full border px-3 py-1.5 text-xs font-semibold transition-all", filter === item.key ? "border-primary bg-primary text-primary-foreground shadow-sun" : "border-butter/35 text-secondary hover:bg-cream/10")}>
+            <button key={item.key} onClick={() => setFilter(item.key)} style={{ touchAction: "manipulation" }} className={cn("min-h-9 whitespace-nowrap rounded-full border px-3 py-1.5 text-xs font-semibold transition-all active:scale-[0.97]", filter === item.key ? "border-primary bg-primary text-primary-foreground shadow-sun" : "border-butter/35 text-secondary hover:bg-cream/10")}>
               {item.label}
             </button>
           ))}
         </nav>
 
         <section
-          className={cn("relative overflow-hidden bg-espresso transition-[height] duration-500", expanded ? "h-[430px]" : "h-[250px]")}
+          className={cn("relative shrink-0 overflow-hidden bg-espresso transition-[height] duration-500", expanded ? "h-map-expanded" : "h-map-collapsed")}
         >
           <MapView
             visibleBars={visibleBars}
