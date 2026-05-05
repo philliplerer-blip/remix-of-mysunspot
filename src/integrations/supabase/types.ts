@@ -353,7 +353,11 @@ export type Database = {
           display_name: string | null
           handle: string | null
           id: string
+          status_emoji: string | null
+          status_text: string | null
+          status_updated_at: string | null
           updated_at: string
+          visibility: Database["public"]["Enums"]["profile_visibility"]
         }
         Insert: {
           avatar_url?: string | null
@@ -361,7 +365,11 @@ export type Database = {
           display_name?: string | null
           handle?: string | null
           id: string
+          status_emoji?: string | null
+          status_text?: string | null
+          status_updated_at?: string | null
           updated_at?: string
+          visibility?: Database["public"]["Enums"]["profile_visibility"]
         }
         Update: {
           avatar_url?: string | null
@@ -369,7 +377,11 @@ export type Database = {
           display_name?: string | null
           handle?: string | null
           id?: string
+          status_emoji?: string | null
+          status_text?: string | null
+          status_updated_at?: string | null
           updated_at?: string
+          visibility?: Database["public"]["Enums"]["profile_visibility"]
         }
         Relationships: []
       }
@@ -455,7 +467,37 @@ export type Database = {
     }
     Functions: {
       are_friends: { Args: { _a: string; _b: string }; Returns: boolean }
+      can_view_profile: {
+        Args: { _target: string; _viewer: string }
+        Returns: boolean
+      }
       cleanup_expired_presence: { Args: never; Returns: undefined }
+      get_profile_for_viewer: {
+        Args: { _target_handle: string }
+        Returns: {
+          avatar_url: string
+          display_name: string
+          handle: string
+          id: string
+          status_emoji: string
+          status_text: string
+          status_updated_at: string
+          visibility: Database["public"]["Enums"]["profile_visibility"]
+        }[]
+      }
+      is_allowed_status_emoji: { Args: { _e: string }; Returns: boolean }
+      list_visible_friend_summaries: {
+        Args: never
+        Returns: {
+          display_name: string
+          friendship_id: string
+          handle: string
+          requested_by: string
+          status: Database["public"]["Enums"]["friendship_status"]
+          status_emoji: string
+          user_id: string
+        }[]
+      }
       send_friend_request: {
         Args: { _target: string }
         Returns: {
@@ -477,6 +519,7 @@ export type Database = {
     }
     Enums: {
       friendship_status: "pending" | "accepted" | "blocked"
+      profile_visibility: "friends_only" | "private"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -605,6 +648,7 @@ export const Constants = {
   public: {
     Enums: {
       friendship_status: ["pending", "accepted", "blocked"],
+      profile_visibility: ["friends_only", "private"],
     },
   },
 } as const
