@@ -1,76 +1,60 @@
 ## Goal
-Replace the right-side `Sheet` drawer that currently shows place details with an **inline expansion** of the selected `BarCard` in the list. The card "pops" open in place — staying anchored to its position in the list — and shows the full place details (rating, price, outdoor seating, sun timeline) directly underneath the card header.
+Make the web app feel like an iOS app — without adding Capacitor or a service worker. The bar list becomes a dedicated scroll region inside a fixed-height "phone screen", and we add the iOS niceties (safe areas, momentum, tap feedback, blurred tab bar).
 
-## Why this approach
-You have three realistic options. Recommended: **Option 1**.
+## Changes
 
-### Option 1 — Inline expanding card (recommended)
-The selected `BarCard` grows downward to reveal the details panel. The card stays in its list slot; no overlay, no new surface.
+### 1. Layout: scrollable bar list inside a fixed screen
+`src/pages/Index.tsx`
+- Outer `<main>` becomes `h-[100dvh]` and the inner panel becomes a flex column that fills it.
+- Header, weather strip, filter chips, and the map keep their natural height (non-scrolling).
+- The bar list section becomes `flex-1 min-h-0 overflow-y-auto` so only the cards scroll.
+- The legend + "N bars in view" line stays pinned above the scroll region.
+- `BottomNav` stays sticky at the bottom of the panel.
+- Add `scroll-snap-type: y proximity` on the list and `scroll-snap-align: start` on each card row for a subtle settle.
 
-Pros:
-- Matches "pop up from the list" literally — the square enlarges out of the row.
-- No layering/z-index issues, works perfectly on the 430px mobile frame.
-- Keeps map + list visible; user keeps spatial context.
-- Smooth height/opacity transition pairs well with existing `animate-rise-in` / `animate-fade-in` utilities.
+### 2. Safe areas + iOS meta
+`index.html`
+- Update viewport meta to `width=device-width, initial-scale=1, viewport-fit=cover`
+- Add:
+  - `<meta name="apple-mobile-web-app-capable" content="yes">`
+  - `<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">`
+  - `<meta name="apple-mobile-web-app-title" content="Sunny Bars">`
+  - `<meta name="theme-color" content="#3d1500">`
+  - `<meta name="format-detection" content="telephone=no">`
 
-Cons:
-- Long sun-timeline content pushes other cards down (mitigated by auto-scrolling the selected card into view).
+`src/index.css`
+- Add safe-area utility classes (`pt-safe`, `pb-safe`, `pl-safe`, `pr-safe`) using `env(safe-area-inset-*)`.
+- Apply `pt-safe` to the header, `pb-safe` to `BottomNav`.
+- Set body font stack to `-apple-system, BlinkMacSystemFont, "SF Pro Text", system-ui, sans-serif`.
+- Globals: `-webkit-tap-highlight-color: transparent`, `-webkit-touch-callout: none`, `text-size-adjust: 100%`.
+- `html, body { overscroll-behavior: none; }` to kill whole-page rubber-band; the list container gets `overscroll-behavior: contain` so its bounce is isolated.
+- `.momentum-scroll { -webkit-overflow-scrolling: touch; }` applied to the list.
+- Hide scrollbars on the list (already a pattern in the codebase).
 
-### Option 2 — Floating popover anchored to the card
-A small panel positioned next to/over the tapped card (Radix Popover).
+### 3. Touch / tap feedback
+`src/components/BarCard.tsx`
+- Add `touch-action: manipulation` and `active:scale-[0.99] active:opacity-95 transition-transform` on the article.
+- `scroll-snap-align: start` on the article.
+- On click handler, call `navigator.vibrate?.(8)` (no-op on iOS, light haptic on Android).
 
-Pros: doesn't reflow the list.
-Cons: on a 430px-wide mobile frame there's nowhere for it to float without covering neighbors; feels like a tooltip, not a "pop-up square".
+`src/components/BottomNav.tsx`
+- Translucent blurred background: `bg-espresso/80 backdrop-blur-xl`.
+- Add `pb-safe` so it clears the home indicator.
+- Bump tap targets to min 44×44 (`min-h-11`).
+- `touch-action: manipulation` on each NavLink.
 
-### Option 3 — Bottom drawer (vaul `Drawer`)
-Already available in `src/components/ui/drawer.tsx`.
+### 4. Sticky filter chips
+`src/pages/Index.tsx`
+- Wrap the filter row in `sticky top-0 z-10` inside the scroll region's parent (or keep above scroll region) with a translucent backdrop so it feels like an iOS segmented header. Decide on whichever lines up cleanly with the existing map block — placed above the scroll region (non-sticky) is simplest and matches current visual hierarchy.
 
-Pros: mobile-native feel.
-Cons: still a separate surface — same UX category as the current `Sheet`, just from the bottom. Doesn't really match "pop up from the list".
+### Files touched
+- `index.html`
+- `src/index.css`
+- `src/pages/Index.tsx`
+- `src/components/BarCard.tsx`
+- `src/components/BottomNav.tsx`
 
-## Plan (Option 1)
-
-### 1. `src/components/BarCard.tsx`
-- Accept new optional props: `expanded?: boolean`, `details?: DirectoryBar | null`.
-- When `expanded` is true, render an extra section below the existing card body containing the details currently shown in the `Sheet`:
-  - rating, price level, outdoor-seating line, sun-timeline grid, timeline date.
-- Wrap the details section in a `div` with `grid-rows-[0fr]` → `grid-rows-[1fr]` height transition (or simple `max-h` + `transition-all`) plus `animate-fade-in` so it reveals smoothly.
-- Apply a subtle "pop" on the card itself when expanded: `scale-[1.01]`, stronger `shadow-sun`, slightly larger padding — so it visually lifts out of the list.
-
-### 2. `src/pages/Index.tsx`
-- Remove the `Sheet`/`SheetContent` block at the bottom (lines ~338–end of that block) and the `selectedDirectoryBar` state purpose changes: keep the state but use it only to feed `details` into the expanded `BarCard`, not to open a sheet.
-- In the `visibleBars.map(...)` loop, pass `expanded={selected === bar.id}` and `details={selected === bar.id ? matchedDirectoryBar : null}` to each `BarCard`.
-- Compute the matched `DirectoryBar` for the active row using the existing `barsInView[bar.id] ?? findNearestDirectoryBar(...)` helper.
-- Tapping an already-selected card collapses it (toggle behaviour).
-- After expanding, call `element.scrollIntoView({ behavior: "smooth", block: "nearest" })` on the card so the revealed details aren't off-screen.
-- Map marker click (`onSelectDirectoryBar`) should now: set `selected` to that bar's id in the list and scroll the list to that card, instead of opening the sheet.
-
-### 3. Cleanup
-- Remove unused imports in `Index.tsx`: `Sheet`, `SheetContent`, `SheetHeader`, `SheetTitle`, `SheetDescription` (keep `Star`, `TreePine` only if still used by the moved details — they will be used in `BarCard`).
-- Move the `Star` / `TreePine` icon imports into `BarCard.tsx`.
-
-## Out of scope
-- No changes to data fetching, weather, or the map.
-- No changes to the favorites button behaviour.
-
-## Visual sketch
-
-```text
-┌──────────────────────────────┐
-│ Toldboden       [Sunny][♥]  │  ← tap
-│ ──── sun bar ────            │
-└──────────────────────────────┘
-
-           ↓ expands in place ↓
-
-┌──────────────────────────────┐
-│ Toldboden       [Sunny][♥]  │
-│ ──── sun bar ────            │
-│                              │
-│ ★ 4.6 / 5    Price: $$       │
-│ 🌳 Outdoor seating available │
-│ Sun timeline:                │
-│  11 12 13 14 15 16 17 18 19  │
-│  ☀ ☀ ☀ ☀ ◑ ◑ ☁ ☁ ☁           │
-└──────────────────────────────┘
-```
+### Out of scope
+- Capacitor / native wrapper
+- Service worker / PWA install flow
+- Real haptics (requires native)
