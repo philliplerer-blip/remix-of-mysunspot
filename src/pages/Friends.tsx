@@ -9,11 +9,12 @@ import { Input } from "@/components/ui/input";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card } from "@/components/ui/card";
 import { BottomNav } from "@/components/BottomNav";
+import { UserBadge } from "@/components/UserBadge";
 import { useAuth } from "@/hooks/use-auth";
 import {
-  friendsApi, setHandle, listFriendships, getProfilesByIds, getMyProfile,
+  friendsApi, setHandle, listFriendSummaries, getMyProfile,
   startPresence, endPresence, getMyActivePresence, getActiveFriendsPresence,
-  type Friendship, type PresenceSession, type ProfileLite,
+  type FriendSummary, type PresenceSession, type ProfileLite,
 } from "@/lib/friends-api";
 
 // Map raw error messages from edge functions / supabase into friendly toasts.
@@ -48,8 +49,7 @@ export default function Friends() {
   const [qr, setQr] = useState<{ webLink: string; deepLink: string; expiresAt: number } | null>(null);
   const [qrLoading, setQrLoading] = useState(false);
   const [now, setNow] = useState(Date.now());
-  const [friendships, setFriendships] = useState<Friendship[]>([]);
-  const [profiles, setProfiles] = useState<Record<string, ProfileLite>>({});
+  const [summaries, setSummaries] = useState<FriendSummary[]>([]);
   const [searchHandle, setSearchHandle] = useState("");
   const [scanning, setScanning] = useState(false);
   const [scanner, setScanner] = useState<Html5Qrcode | null>(null);
@@ -61,10 +61,7 @@ export default function Friends() {
   const refresh = async () => {
     const me = await getMyProfile();
     setProfile(me);
-    const fs = await listFriendships();
-    setFriendships(fs);
-    const ids = Array.from(new Set(fs.flatMap((f) => [f.user_a, f.user_b]).filter((id) => id !== user?.id)));
-    setProfiles(await getProfilesByIds(ids));
+    setSummaries(await listFriendSummaries());
     setMyPresence(await getMyActivePresence());
     const fp = await getActiveFriendsPresence();
     setFriendsPresence(fp as PresenceSession[]);
@@ -122,7 +119,11 @@ export default function Friends() {
   };
 
   const onSendByHandle = async () => {
-    try { await friendsApi.requestByHandle(searchHandle); toast.success("Request sent"); setSearchHandle(""); refresh(); }
+    try {
+      const res = await friendsApi.requestByHandle(searchHandle);
+      // Generic message — we never confirm whether the handle existed.
+      toast.success(res.message); setSearchHandle(""); refresh();
+    }
     catch (e: unknown) { toast.error((e as Error).message ?? "Failed"); }
   };
 
@@ -188,16 +189,14 @@ export default function Friends() {
     await endPresence(myPresence.id); refresh(); toast.success("Session ended");
   };
 
-  const accepted = friendships.filter((f) => f.status === "accepted");
-  const incoming = friendships.filter((f) => f.status === "pending" && f.requested_by !== user?.id);
-  const outgoing = friendships.filter((f) => f.status === "pending" && f.requested_by === user?.id);
-
-  const otherIdOf = (f: Friendship) => (f.user_a === user?.id ? f.user_b : f.user_a);
-  const labelOf = (id: string) => profiles[id]?.handle ? `@${profiles[id]?.handle}` : (profiles[id]?.display_name ?? "user");
+  const accepted = summaries.filter((s) => s.status === "accepted");
+  const incoming = summaries.filter((s) => s.status === "pending" && s.requested_by !== user?.id);
+  const outgoing = summaries.filter((s) => s.status === "pending" && s.requested_by === user?.id);
+  const summaryById = useMemo(() => Object.fromEntries(summaries.map((s) => [s.user_id, s])), [summaries]);
 
   const presenceWithLabel = useMemo(
-    () => friendsPresence.map((p) => ({ ...p, label: labelOf(p.user_id) })),
-    [friendsPresence, profiles],
+    () => friendsPresence.map((p) => ({ ...p, summary: summaryById[p.user_id] as FriendSummary | undefined })),
+    [friendsPresence, summaryById],
   );
 
   if (!profile) return null;
@@ -231,12 +230,12 @@ export default function Friends() {
           {incoming.length > 0 && (
             <section>
               <h3 className="mb-2 text-sm font-semibold uppercase tracking-wide text-secondary/60">Incoming</h3>
-              {incoming.map((f) => (
-                <Card key={f.id} className="mb-2 flex items-center justify-between border-butter/30 bg-espresso-light p-3">
-                  <span>{labelOf(otherIdOf(f))}</span>
+              {incoming.map((s) => (
+                <Card key={s.friendship_id} className="mb-2 flex items-center justify-between border-butter/30 bg-espresso-light p-3">
+                  <UserBadge handle={s.handle} displayName={s.display_name} statusEmoji={s.status_emoji} />
                   <div className="flex gap-2">
-                    <Button size="sm" onClick={() => onRespond(f.id, "accept")}>Accept</Button>
-                    <Button size="sm" variant="ghost" onClick={() => onRespond(f.id, "decline")}>Decline</Button>
+                    <Button size="sm" onClick={() => onRespond(s.friendship_id, "accept")}>Accept</Button>
+                    <Button size="sm" variant="ghost" onClick={() => onRespond(s.friendship_id, "decline")}>Decline</Button>
                   </div>
                 </Card>
               ))}
@@ -245,10 +244,10 @@ export default function Friends() {
           {outgoing.length > 0 && (
             <section>
               <h3 className="mb-2 text-sm font-semibold uppercase tracking-wide text-secondary/60">Sent</h3>
-              {outgoing.map((f) => (
-                <Card key={f.id} className="mb-2 flex items-center justify-between border-butter/30 bg-espresso-light p-3">
-                  <span>{labelOf(otherIdOf(f))}</span>
-                  <Button size="sm" variant="ghost" onClick={() => onRespond(f.id, "remove")}>Cancel</Button>
+              {outgoing.map((s) => (
+                <Card key={s.friendship_id} className="mb-2 flex items-center justify-between border-butter/30 bg-espresso-light p-3">
+                  <UserBadge handle={s.handle} displayName={s.display_name} statusEmoji={s.status_emoji} />
+                  <Button size="sm" variant="ghost" onClick={() => onRespond(s.friendship_id, "remove")}>Cancel</Button>
                 </Card>
               ))}
             </section>
@@ -256,12 +255,18 @@ export default function Friends() {
           <section>
             <h3 className="mb-2 text-sm font-semibold uppercase tracking-wide text-secondary/60">Friends ({accepted.length})</h3>
             {accepted.length === 0 && <p className="text-sm text-secondary/60">No friends yet. Add some via QR or @handle.</p>}
-            {accepted.map((f) => (
-              <Card key={f.id} className="mb-2 flex items-center justify-between border-butter/30 bg-espresso-light p-3">
-                <span>{labelOf(otherIdOf(f))}</span>
+            {accepted.map((s) => (
+              <Card key={s.friendship_id} className="mb-2 flex items-center justify-between border-butter/30 bg-espresso-light p-3">
+                <button
+                  type="button"
+                  className="text-left flex-1"
+                  onClick={() => s.handle && navigate(`/u/${s.handle}`)}
+                >
+                  <UserBadge handle={s.handle} displayName={s.display_name} statusEmoji={s.status_emoji} />
+                </button>
                 <div className="flex gap-2">
-                  <Button size="sm" variant="ghost" onClick={() => onRespond(f.id, "remove")}>Remove</Button>
-                  <Button size="sm" variant="ghost" onClick={() => onRespond(f.id, "block")}>Block</Button>
+                  <Button size="sm" variant="ghost" onClick={() => onRespond(s.friendship_id, "remove")}>Remove</Button>
+                  <Button size="sm" variant="ghost" onClick={() => onRespond(s.friendship_id, "block")}>Block</Button>
                 </div>
               </Card>
             ))}
@@ -293,7 +298,13 @@ export default function Friends() {
             {presenceWithLabel.length === 0 && <p className="text-sm text-secondary/60">No friends are live right now.</p>}
             {presenceWithLabel.map((p) => (
               <Card key={p.id} className="mb-2 border-butter/30 bg-espresso-light p-3">
-                <div className="font-semibold">{p.label}</div>
+                <button
+                  type="button"
+                  onClick={() => p.summary?.handle && navigate(`/u/${p.summary.handle}`)}
+                  className="font-semibold"
+                >
+                  <UserBadge handle={p.summary?.handle} displayName={p.summary?.display_name} statusEmoji={p.summary?.status_emoji} />
+                </button>
                 <div className="text-sm">{p.activity}</div>
                 <div className="text-xs text-secondary/60">until {new Date(p.expires_at).toLocaleTimeString()}</div>
               </Card>
