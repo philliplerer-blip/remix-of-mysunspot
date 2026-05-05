@@ -167,6 +167,36 @@ export type Database = {
         }
         Relationships: []
       }
+      friendships: {
+        Row: {
+          created_at: string
+          id: string
+          requested_by: string
+          status: Database["public"]["Enums"]["friendship_status"]
+          updated_at: string
+          user_a: string
+          user_b: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          requested_by: string
+          status?: Database["public"]["Enums"]["friendship_status"]
+          updated_at?: string
+          user_a: string
+          user_b: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          requested_by?: string
+          status?: Database["public"]["Enums"]["friendship_status"]
+          updated_at?: string
+          user_a?: string
+          user_b?: string
+        }
+        Relationships: []
+      }
       notification_settings: {
         Row: {
           cooldown_minutes: number
@@ -272,11 +302,56 @@ export type Database = {
         }
         Relationships: []
       }
+      presence_sessions: {
+        Row: {
+          activity: string
+          bar_id: string | null
+          created_at: string
+          expires_at: string
+          id: string
+          location_lat: number | null
+          location_lng: number | null
+          started_at: string
+          user_id: string
+        }
+        Insert: {
+          activity: string
+          bar_id?: string | null
+          created_at?: string
+          expires_at: string
+          id?: string
+          location_lat?: number | null
+          location_lng?: number | null
+          started_at?: string
+          user_id: string
+        }
+        Update: {
+          activity?: string
+          bar_id?: string | null
+          created_at?: string
+          expires_at?: string
+          id?: string
+          location_lat?: number | null
+          location_lng?: number | null
+          started_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "presence_sessions_bar_id_fkey"
+            columns: ["bar_id"]
+            isOneToOne: false
+            referencedRelation: "bars_directory"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       profiles: {
         Row: {
           avatar_url: string | null
           created_at: string
           display_name: string | null
+          handle: string | null
           id: string
           updated_at: string
         }
@@ -284,6 +359,7 @@ export type Database = {
           avatar_url?: string | null
           created_at?: string
           display_name?: string | null
+          handle?: string | null
           id: string
           updated_at?: string
         }
@@ -291,6 +367,7 @@ export type Database = {
           avatar_url?: string | null
           created_at?: string
           display_name?: string | null
+          handle?: string | null
           id?: string
           updated_at?: string
         }
@@ -331,13 +408,75 @@ export type Database = {
       }
     }
     Views: {
-      [_ in never]: never
+      active_presence_sessions: {
+        Row: {
+          activity: string | null
+          bar_id: string | null
+          created_at: string | null
+          expires_at: string | null
+          id: string | null
+          location_lat: number | null
+          location_lng: number | null
+          started_at: string | null
+          user_id: string | null
+        }
+        Insert: {
+          activity?: string | null
+          bar_id?: string | null
+          created_at?: string | null
+          expires_at?: string | null
+          id?: string | null
+          location_lat?: never
+          location_lng?: never
+          started_at?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          activity?: string | null
+          bar_id?: string | null
+          created_at?: string | null
+          expires_at?: string | null
+          id?: string | null
+          location_lat?: never
+          location_lng?: never
+          started_at?: string | null
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "presence_sessions_bar_id_fkey"
+            columns: ["bar_id"]
+            isOneToOne: false
+            referencedRelation: "bars_directory"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Functions: {
-      [_ in never]: never
+      are_friends: { Args: { _a: string; _b: string }; Returns: boolean }
+      cleanup_expired_presence: { Args: never; Returns: undefined }
+      send_friend_request: {
+        Args: { _target: string }
+        Returns: {
+          created_at: string
+          id: string
+          requested_by: string
+          status: Database["public"]["Enums"]["friendship_status"]
+          updated_at: string
+          user_a: string
+          user_b: string
+        }
+        SetofOptions: {
+          from: "*"
+          to: "friendships"
+          isOneToOne: true
+          isSetofReturn: false
+        }
+      }
     }
     Enums: {
-      [_ in never]: never
+      friendship_status: "pending" | "accepted" | "blocked"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -464,6 +603,8 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {},
+    Enums: {
+      friendship_status: ["pending", "accepted", "blocked"],
+    },
   },
 } as const
