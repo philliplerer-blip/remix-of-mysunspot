@@ -1,4 +1,4 @@
-import { Compass, Heart } from "lucide-react";
+import { Compass, Heart, Users } from "lucide-react";
 import { NavLink } from "react-router-dom";
 import { cn } from "@/lib/utils";
 
@@ -10,6 +10,7 @@ interface BottomNavProps {
 const items = [
   { to: "/", label: "Discover", icon: Compass },
   { to: "/favorites", label: "Favorites", icon: Heart },
+  { to: "/friends", label: "Friends", icon: Users },
 ];
 
 export const BottomNav = ({ favoritesCount }: BottomNavProps) => (
