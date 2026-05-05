@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { QRCodeSVG } from "qrcode.react";
 import { Html5Qrcode } from "html5-qrcode";
 import { toast } from "sonner";
+import { Copy, RefreshCw, X, QrCode, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -15,16 +16,43 @@ import {
   type Friendship, type PresenceSession, type ProfileLite,
 } from "@/lib/friends-api";
 
+// Map raw error messages from edge functions / supabase into friendly toasts.
+function explainScanError(raw: string): string {
+  const m = raw.toLowerCase();
+  if (m.includes("permission") || m.includes("notallowed")) return "Camera access denied. Enable it in your browser settings.";
+  if (m.includes("notfound") || m.includes("no camera")) return "No camera found on this device.";
+  if (m.includes("expired")) return "This invite QR has expired. Ask your friend to regenerate it.";
+  if (m.includes("signature") || m.includes("malformed") || m.includes("not a valid")) return "That QR isn't a Sunny Bars invite.";
+  if (m.includes("blocked")) return "You can't add this user.";
+  if (m.includes("yourself")) return "That's your own QR — try someone else's.";
+  if (m.includes("token/user mismatch")) return "QR data is inconsistent. Ask for a fresh one.";
+  return raw || "Couldn't add friend.";
+}
+
+function formatCountdown(ms: number): string {
+  if (ms <= 0) return "expired";
+  const total = Math.floor(ms / 1000);
+  const h = Math.floor(total / 3600);
+  const m = Math.floor((total % 3600) / 60);
+  const s = total % 60;
+  if (h > 0) return `${h}h ${m}m`;
+  if (m > 0) return `${m}m ${s.toString().padStart(2, "0")}s`;
+  return `${s}s`;
+}
+
 export default function Friends() {
   const { user } = useAuth();
   const navigate = useNavigate();
   const [profile, setProfile] = useState<ProfileLite | null>(null);
   const [handleInput, setHandleInput] = useState("");
   const [qr, setQr] = useState<{ webLink: string; deepLink: string; expiresAt: number } | null>(null);
+  const [qrLoading, setQrLoading] = useState(false);
+  const [now, setNow] = useState(Date.now());
   const [friendships, setFriendships] = useState<Friendship[]>([]);
   const [profiles, setProfiles] = useState<Record<string, ProfileLite>>({});
   const [searchHandle, setSearchHandle] = useState("");
   const [scanning, setScanning] = useState(false);
+  const [scanner, setScanner] = useState<Html5Qrcode | null>(null);
   const [myPresence, setMyPresence] = useState<PresenceSession | null>(null);
   const [activity, setActivity] = useState("");
   const [duration, setDuration] = useState(60);
@@ -44,6 +72,13 @@ export default function Friends() {
 
   useEffect(() => { if (user) refresh(); }, [user?.id]);
 
+  // Tick once a second while a QR is on screen so the countdown updates.
+  useEffect(() => {
+    if (!qr) return;
+    const id = window.setInterval(() => setNow(Date.now()), 1000);
+    return () => window.clearInterval(id);
+  }, [qr?.expiresAt]);
+
   // Handle deep-link /friends/add?u=&t=
   useEffect(() => {
     if (!user) return;
@@ -62,9 +97,28 @@ export default function Friends() {
     catch (e: unknown) { toast.error((e as Error).message); }
   };
 
-  const onMintQr = async () => {
-    try { setQr(await friendsApi.mintQr()); }
-    catch (e: unknown) { toast.error((e as Error).message ?? "Failed to mint QR"); }
+  const onMintQr = async (silent = false) => {
+    setQrLoading(true);
+    try {
+      const next = await friendsApi.mintQr();
+      setQr(next);
+      setNow(Date.now());
+      if (!silent) toast.success("New invite QR ready");
+    } catch (e: unknown) {
+      toast.error((e as Error).message ?? "Failed to generate QR");
+    } finally {
+      setQrLoading(false);
+    }
+  };
+
+  const onCopyLink = async () => {
+    if (!qr) return;
+    try {
+      await navigator.clipboard.writeText(qr.webLink);
+      toast.success("Invite link copied");
+    } catch {
+      toast.error("Couldn't copy. Long-press the QR to share.");
+    }
   };
 
   const onSendByHandle = async () => {
@@ -77,22 +131,51 @@ export default function Friends() {
     catch (e: unknown) { toast.error((e as Error).message ?? "Failed"); }
   };
 
+  const stopScan = async () => {
+    if (scanner) {
+      try { await scanner.stop(); } catch { /* ignore */ }
+      try { scanner.clear(); } catch { /* ignore */ }
+      setScanner(null);
+    }
+    setScanning(false);
+  };
+
   const startScan = async () => {
     setScanning(true);
+    // Wait a tick so the #qr-reader div is mounted.
     setTimeout(async () => {
+      let instance: Html5Qrcode | null = null;
       try {
-        const qr = new Html5Qrcode("qr-reader");
-        await qr.start({ facingMode: "environment" }, { fps: 10, qrbox: 240 }, async (decoded) => {
-          await qr.stop(); setScanning(false);
-          try {
-            const url = new URL(decoded);
-            const u = url.searchParams.get("u"); const t = url.searchParams.get("t");
-            if (!u || !t) throw new Error("Not a valid invite QR");
-            await friendsApi.requestByToken(u, t);
-            toast.success("Friend request sent!"); refresh();
-          } catch (e: unknown) { toast.error((e as Error).message ?? "Invalid QR"); }
-        }, () => {});
-      } catch (e: unknown) { toast.error((e as Error).message ?? "Camera error"); setScanning(false); }
+        instance = new Html5Qrcode("qr-reader");
+        setScanner(instance);
+        await instance.start(
+          { facingMode: "environment" },
+          { fps: 10, qrbox: 240 },
+          async (decoded) => {
+            // Stop immediately to avoid duplicate scans.
+            try { await instance!.stop(); instance!.clear(); } catch { /* ignore */ }
+            setScanner(null);
+            setScanning(false);
+            try {
+              const url = new URL(decoded);
+              const u = url.searchParams.get("u");
+              const t = url.searchParams.get("t");
+              if (!u || !t) throw new Error("not a valid invite");
+              if (u === user?.id) throw new Error("yourself");
+              await friendsApi.requestByToken(u, t);
+              toast.success("Friend request sent!");
+              refresh();
+            } catch (e: unknown) {
+              toast.error(explainScanError((e as Error).message ?? ""));
+            }
+          },
+          () => { /* per-frame decode failures are noisy; ignore */ },
+        );
+      } catch (e: unknown) {
+        toast.error(explainScanError((e as Error).message ?? "Camera error"));
+        setScanner(null);
+        setScanning(false);
+      }
     }, 0);
   };
 
