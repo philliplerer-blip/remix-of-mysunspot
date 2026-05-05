@@ -137,8 +137,8 @@ All colors MUST be HSL.
   .bg-map-gradient { background: var(--gradient-map); }
   .shadow-sun { box-shadow: var(--shadow-sun); }
   .shadow-panel { box-shadow: var(--shadow-panel); }
-  .pt-safe { padding-top: env(safe-area-inset-top); }
-  .pb-safe { padding-bottom: env(safe-area-inset-bottom); }
+  .pt-safe { padding-top: max(env(safe-area-inset-top), 0.75rem); }
+  .pb-safe { padding-bottom: max(env(safe-area-inset-bottom), 0.5rem); }
   .pl-safe { padding-left: env(safe-area-inset-left); }
   .pr-safe { padding-right: env(safe-area-inset-right); }
   .momentum-scroll {

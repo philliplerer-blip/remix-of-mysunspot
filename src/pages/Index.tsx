@@ -190,7 +190,7 @@ const Index = () => {
   return (
     <main className="h-[100dvh] overflow-hidden bg-app-gradient px-0 text-foreground sm:px-4 sm:py-8">
       <section className="mx-auto flex h-full w-full max-w-[430px] flex-col overflow-hidden border-butter/60 bg-background shadow-panel animate-rise-in sm:h-[calc(100dvh-4rem)] sm:rounded-[2rem] sm:border">
-        <header className="bg-espresso px-5 pb-4 pt-3 text-secondary pt-safe">
+        <header className="bg-espresso px-5 pb-4 text-secondary pt-safe">
           <div className="flex items-center justify-between text-[0.7rem] text-muted-foreground">
             <span>
               {now.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
