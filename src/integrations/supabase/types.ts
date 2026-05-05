@@ -134,6 +134,39 @@ export type Database = {
         }
         Relationships: []
       }
+      device_tokens: {
+        Row: {
+          app_version: string | null
+          created_at: string
+          id: string
+          locale: string | null
+          platform: string
+          token: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          app_version?: string | null
+          created_at?: string
+          id?: string
+          locale?: string | null
+          platform: string
+          token: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          app_version?: string | null
+          created_at?: string
+          id?: string
+          locale?: string | null
+          platform?: string
+          token?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       favorite_bars: {
         Row: {
           alerts_enabled: boolean
@@ -163,6 +196,24 @@ export type Database = {
           id?: string
           lat?: number
           lng?: number
+          user_id?: string
+        }
+        Relationships: []
+      }
+      friend_proximity_mutes: {
+        Row: {
+          created_at: string
+          friend_id: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          friend_id: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          friend_id?: string
           user_id?: string
         }
         Relationships: []
@@ -353,6 +404,7 @@ export type Database = {
           display_name: string | null
           handle: string | null
           id: string
+          proximity_notifications_enabled: boolean
           status_emoji: string | null
           status_text: string | null
           status_updated_at: string | null
@@ -365,6 +417,7 @@ export type Database = {
           display_name?: string | null
           handle?: string | null
           id: string
+          proximity_notifications_enabled?: boolean
           status_emoji?: string | null
           status_text?: string | null
           status_updated_at?: string | null
@@ -377,11 +430,33 @@ export type Database = {
           display_name?: string | null
           handle?: string | null
           id?: string
+          proximity_notifications_enabled?: boolean
           status_emoji?: string | null
           status_text?: string | null
           status_updated_at?: string | null
           updated_at?: string
           visibility?: Database["public"]["Enums"]["profile_visibility"]
+        }
+        Relationships: []
+      }
+      proximity_notifications: {
+        Row: {
+          friend_id: string
+          id: string
+          sent_at: string
+          user_id: string
+        }
+        Insert: {
+          friend_id: string
+          id?: string
+          sent_at?: string
+          user_id: string
+        }
+        Update: {
+          friend_id?: string
+          id?: string
+          sent_at?: string
+          user_id?: string
         }
         Relationships: []
       }
@@ -414,6 +489,39 @@ export type Database = {
           target_kind?: string
           target_name?: string
           target_ref?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      web_push_subscriptions: {
+        Row: {
+          auth: string
+          created_at: string
+          endpoint: string
+          id: string
+          p256dh: string
+          updated_at: string
+          user_agent: string | null
+          user_id: string
+        }
+        Insert: {
+          auth: string
+          created_at?: string
+          endpoint: string
+          id?: string
+          p256dh: string
+          updated_at?: string
+          user_agent?: string | null
+          user_id: string
+        }
+        Update: {
+          auth?: string
+          created_at?: string
+          endpoint?: string
+          id?: string
+          p256dh?: string
+          updated_at?: string
+          user_agent?: string | null
           user_id?: string
         }
         Relationships: []
@@ -472,6 +580,16 @@ export type Database = {
         Returns: boolean
       }
       cleanup_expired_presence: { Args: never; Returns: undefined }
+      cleanup_proximity_log: { Args: never; Returns: undefined }
+      evaluate_proximity: {
+        Args: { _session_id: string }
+        Returns: {
+          friend_display_name: string
+          friend_id: string
+          friend_status_emoji: string
+          recipient_id: string
+        }[]
+      }
       get_profile_for_viewer: {
         Args: { _target_handle: string }
         Returns: {
@@ -486,6 +604,16 @@ export type Database = {
         }[]
       }
       is_allowed_status_emoji: { Args: { _e: string }; Returns: boolean }
+      list_recent_proximity_alerts: {
+        Args: never
+        Returns: {
+          friend_display_name: string
+          friend_handle: string
+          friend_id: string
+          muted: boolean
+          sent_at: string
+        }[]
+      }
       list_visible_friend_summaries: {
         Args: never
         Returns: {
@@ -497,6 +625,10 @@ export type Database = {
           status_emoji: string
           user_id: string
         }[]
+      }
+      record_proximity_sent: {
+        Args: { _friend: string; _recipient: string }
+        Returns: undefined
       }
       send_friend_request: {
         Args: { _target: string }
