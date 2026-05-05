@@ -104,7 +104,7 @@ export default function Profile() {
             {subtitle && <p className="text-xs text-muted-foreground">{subtitle}</p>}
           </div>
         </header>
-        <section className="flex-1 space-y-4 bg-background px-4 py-4">{children}</section>
+        <section className="flex-1 min-h-0 overflow-y-auto space-y-4 bg-background px-4 py-4">{children}</section>
         <BottomNav favoritesCount={0} />
       </section>
     </main>

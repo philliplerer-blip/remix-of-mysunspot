@@ -44,7 +44,7 @@ const Favorites = () => {
           </div>
         </header>
 
-        <section className="flex-1 space-y-4 bg-background px-4 py-4">
+        <section className="flex-1 min-h-0 overflow-y-auto space-y-4 bg-background px-4 py-4">
           <div className="space-y-3 rounded-2xl border border-border bg-card p-4">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
