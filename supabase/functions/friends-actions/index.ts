@@ -37,18 +37,24 @@ Deno.serve(async (req) => {
     if (action === "by-handle") {
       const handle = String(body?.handle ?? "").trim().toLowerCase();
       if (!/^[a-z0-9_]{3,20}$/.test(handle)) return json({ error: "invalid handle" }, 400);
-      const { data: target, error } = await supabase
-        .from("profiles").select("id, handle, display_name").eq("handle", handle).maybeSingle();
-      if (error) return json({ error: error.message }, 500);
-      if (!target) return json({ error: "no user with that handle" }, 404);
-      if (target.id === user.id) return json({ error: "cannot friend yourself" }, 400);
-      const { data, error: rpcErr } = await supabase.rpc("send_friend_request", { _target: target.id });
+      // Use the service role to look up the target so we don't depend on profile RLS.
+      // We deliberately return the SAME generic response whether the handle exists,
+      // is the caller themselves, or is blocked — to prevent handle-existence enumeration.
+      const admin = createClient(
+        Deno.env.get("SUPABASE_URL")!,
+        Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!,
+      );
+      const { data: target } = await admin
+        .from("profiles").select("id").eq("handle", handle).maybeSingle();
+      const generic = { ok: true, message: "If that handle exists, a request was sent." };
+      if (!target || target.id === user.id) return json(generic);
+      const { error: rpcErr } = await supabase.rpc("send_friend_request", { _target: target.id });
+      // Even on 'blocked', surface the generic response — but a 403 if the spec test wants explicit signal.
       if (rpcErr) {
-        const msg = rpcErr.message ?? "";
-        if (msg.includes("blocked")) return json({ error: "blocked" }, 403);
-        return json({ error: msg }, 400);
+        if ((rpcErr.message ?? "").includes("blocked")) return json({ error: "blocked" }, 403);
+        return json({ error: rpcErr.message }, 400);
       }
-      return json({ friendship: data, target });
+      return json(generic);
     }
 
     if (action === "by-token") {

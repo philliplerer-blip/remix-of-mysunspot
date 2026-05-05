@@ -26,6 +26,23 @@ export type ProfileLite = {
   handle: string | null;
   display_name: string | null;
   avatar_url: string | null;
+  status_emoji?: string | null;
+};
+
+export type FullProfile = ProfileLite & {
+  status_text: string | null;
+  status_updated_at: string | null;
+  visibility: "friends_only" | "private";
+};
+
+export type FriendSummary = {
+  user_id: string;
+  handle: string | null;
+  display_name: string | null;
+  status_emoji: string | null;
+  friendship_id: string;
+  status: "pending" | "accepted" | "blocked";
+  requested_by: string;
 };
 
 async function call<T>(fn: string, body: unknown): Promise<T> {
@@ -38,11 +55,14 @@ export const friendsApi = {
   mintQr: () => call<{ token: string; expiresAt: number; deepLink: string; webLink: string }>("friends-qr/mint", {}),
   verifyToken: (token: string) => call<{ userId: string }>("friends-qr/verify", { token }),
   requestByHandle: (handle: string) =>
-    call<{ friendship: Friendship; target: ProfileLite }>("friends-actions/by-handle", { handle }),
+    // Returns a generic { ok, message } whether or not the handle resolved (anti-enumeration).
+    call<{ ok: boolean; message: string }>("friends-actions/by-handle", { handle }),
   requestByToken: (userId: string, token: string) =>
     call<{ friendship: Friendship }>("friends-actions/by-token", { userId, token }),
   respond: (friendshipId: string, action: "accept" | "decline" | "remove" | "block") =>
     call<{ friendship?: Friendship; ok?: boolean }>("friends-actions/respond", { friendshipId, action }),
+  updateMyProfile: (patch: Partial<Pick<FullProfile, "display_name" | "status_emoji" | "status_text" | "visibility">>) =>
+    call<{ profile: FullProfile }>("profile-update", patch),
 };
 
 export async function setHandle(handle: string) {
@@ -111,21 +131,29 @@ export async function listFriendships(): Promise<Friendship[]> {
   return (data as Friendship[]) ?? [];
 }
 
-export async function getProfilesByIds(ids: string[]): Promise<Record<string, ProfileLite>> {
-  if (!ids.length) return {};
-  const { data, error } = await supabase
-    .from("profiles").select("id, handle, display_name, avatar_url").in("id", ids);
+export async function listFriendSummaries(): Promise<FriendSummary[]> {
+  // Goes through the SECURITY DEFINER RPC. Returns lean fields only — full profile
+  // data must be fetched via getProfileByHandle (which runs canViewProfile).
+  const { data, error } = await supabase.rpc("list_visible_friend_summaries");
   if (error) throw error;
-  const out: Record<string, ProfileLite> = {};
-  for (const p of (data ?? []) as ProfileLite[]) out[p.id] = p;
-  return out;
+  return (data as FriendSummary[]) ?? [];
+}
+
+export async function getProfileByHandle(handle: string): Promise<FullProfile | null> {
+  // Default-deny: an empty result means "you can't see this profile" — UI shows 'Not found'.
+  const { data, error } = await supabase.rpc("get_profile_for_viewer", { _target_handle: handle });
+  if (error) throw error;
+  const row = (data as FullProfile[] | null)?.[0];
+  return row ?? null;
 }
 
 export async function getMyProfile(): Promise<ProfileLite | null> {
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) return null;
   const { data, error } = await supabase
-    .from("profiles").select("id, handle, display_name, avatar_url").eq("id", user.id).maybeSingle();
+    .from("profiles")
+    .select("id, handle, display_name, avatar_url, status_emoji, status_text, status_updated_at, visibility")
+    .eq("id", user.id).maybeSingle();
   if (error) throw error;
-  return data as ProfileLite | null;
+  return data as FullProfile | null;
 }

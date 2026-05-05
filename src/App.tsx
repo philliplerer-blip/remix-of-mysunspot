@@ -7,6 +7,7 @@ import Index from "./pages/Index.tsx";
 import Favorites from "./pages/Favorites.tsx";
 import Auth from "./pages/Auth.tsx";
 import Friends from "./pages/Friends.tsx";
+import Profile from "./pages/Profile.tsx";
 import NotFound from "./pages/NotFound.tsx";
 import { RequireAuth } from "./components/RequireAuth.tsx";
 
@@ -24,6 +25,8 @@ const App = () => (
           <Route path="/favorites" element={<RequireAuth><Favorites /></RequireAuth>} />
           <Route path="/friends" element={<RequireAuth><Friends /></RequireAuth>} />
           <Route path="/friends/add" element={<RequireAuth><Friends /></RequireAuth>} />
+          <Route path="/profile" element={<RequireAuth><Profile /></RequireAuth>} />
+          <Route path="/u/:handle" element={<RequireAuth><Profile /></RequireAuth>} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
         </Routes>
