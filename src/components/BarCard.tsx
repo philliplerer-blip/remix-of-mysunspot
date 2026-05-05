@@ -127,6 +127,28 @@ export const BarCard = ({ bar, selected, isFavorite, onSelect, onToggleFavorite,
               {details.address && (
                 <p className="text-xs text-muted-foreground">{details.address}</p>
               )}
+              {hourlyWeather && hourlyWeather.length > 0 && (
+                <div>
+                  <p className="mb-1.5 text-[0.62rem] font-semibold uppercase tracking-wide text-muted-foreground">
+                    Hourly forecast
+                  </p>
+                  <div className="flex gap-1.5 overflow-x-auto pb-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+                    {hourlyWeather.map((hour) => (
+                      <div
+                        key={hour.hour}
+                        className={cn(
+                          "min-w-12 shrink-0 rounded-lg border border-border/70 bg-muted/40 px-2 py-1.5 text-center",
+                          hour.hour === nowHourProp && "border-sun bg-sun/15",
+                        )}
+                      >
+                        <p className="text-[0.6rem] text-muted-foreground">{hour.time}:00</p>
+                        <p className="text-sm leading-4">{hour.icon}</p>
+                        <p className="text-[0.62rem] font-semibold">{hour.sunPct}%</p>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
               <div className="flex flex-wrap items-center gap-x-4 gap-y-2 text-xs">
                 <span className="flex items-center gap-1">
                   <Star className="size-3.5 text-sun" />
