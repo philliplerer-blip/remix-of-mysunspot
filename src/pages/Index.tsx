@@ -313,6 +313,7 @@ const Index = () => {
                 <div
                   key={bar.id}
                   ref={(el) => { cardRefs.current[bar.id] = el; }}
+                  className={cn(!isExpanded && "cv-auto")}
                 >
                   <BarCard
                     bar={bar}
