@@ -92,42 +92,59 @@ export default function Profile() {
     }
   };
 
+  const Shell = ({ children, eyebrow, title, subtitle }: { children: React.ReactNode; eyebrow: string; title: string; subtitle?: string }) => (
+    <main className="min-h-screen bg-app-gradient px-4 py-4 text-foreground sm:py-8">
+      <section className="mx-auto flex min-h-[calc(100vh-2rem)] w-full max-w-[430px] flex-col overflow-hidden rounded-[2rem] border border-butter/60 bg-background shadow-panel animate-rise-in">
+        <header className="bg-espresso px-5 pb-5 pt-3 text-secondary">
+          <div className="flex items-center justify-between text-[0.7rem] text-muted-foreground">
+            <span>{eyebrow}</span>
+          </div>
+          <div className="mt-4">
+            <h1 className="font-display text-3xl font-semibold tracking-normal text-secondary">{title}</h1>
+            {subtitle && <p className="text-xs text-muted-foreground">{subtitle}</p>}
+          </div>
+        </header>
+        <section className="flex-1 space-y-4 bg-background px-4 py-4">{children}</section>
+        <BottomNav favoritesCount={0} />
+      </section>
+    </main>
+  );
+
   if (loading) {
     return (
-      <main className="flex min-h-app items-center justify-center bg-espresso text-secondary">
-        <Loader2 className="size-6 animate-spin" />
-      </main>
+      <Shell eyebrow={isOwn ? "Your profile" : "Profile"} title={isOwn ? "Your profile" : "Profile"}>
+        <div className="flex flex-1 items-center justify-center py-10">
+          <Loader2 className="size-6 animate-spin text-muted-foreground" />
+        </div>
+      </Shell>
     );
   }
 
   // Default-deny: identical UI for "no such handle" and "not allowed to see".
   if (!isOwn && (notFound || !profile)) {
     return (
-      <main className="flex min-h-app flex-col bg-espresso text-secondary">
-        <header className="px-4 pt-safe pt-4 pb-2">
-          <Button variant="ghost" size="sm" onClick={() => navigate(-1)}>← Back</Button>
-        </header>
-        <div className="flex flex-1 items-center justify-center px-6 text-center">
+      <Shell eyebrow="Profile" title="Profile">
+        <Button variant="ghost" size="sm" onClick={() => navigate(-1)}>← Back</Button>
+        <div className="grid place-items-center rounded-2xl border border-dashed border-border bg-card p-6 text-center">
           <div>
-            <h1 className="text-xl font-semibold">Profile not found</h1>
-            <p className="mt-2 text-sm text-secondary/60">No user with that handle, or you don't have permission to view it.</p>
+            <h2 className="font-semibold">Profile not found</h2>
+            <p className="mt-2 text-sm text-muted-foreground">No user with that handle, or you don't have permission to view it.</p>
           </div>
         </div>
-        <BottomNav favoritesCount={0} />
-      </main>
+      </Shell>
     );
   }
 
   if (!profile) return null;
 
   return (
-    <main className="flex min-h-app flex-col bg-espresso text-secondary pb-4">
-      <header className="px-4 pt-safe pt-4 pb-2">
-        <h1 className="text-2xl font-bold">{isOwn ? "Your profile" : "Profile"}</h1>
-      </header>
-
-      <div className="px-4 space-y-4">
-        <Card className="border-butter/30 bg-espresso-light p-4">
+    <Shell
+      eyebrow={isOwn ? "Your profile" : "Profile"}
+      title={isOwn ? "Your profile" : "Profile"}
+      subtitle={profile.handle ? `@${profile.handle}` : undefined}
+    >
+      <div className="space-y-4">
+        <Card className="rounded-2xl border border-border bg-card p-4">
           <UserBadge
             handle={profile.handle}
             displayName={profile.display_name}
@@ -136,10 +153,10 @@ export default function Profile() {
           />
           {profile.status_text && (
             // Plain text only; React escapes by default. We never use dangerouslySetInnerHTML here.
-            <p className="mt-1 text-sm text-secondary/80">{profile.status_text}</p>
+            <p className="mt-1 text-sm text-foreground/80">{profile.status_text}</p>
           )}
           {profile.status_updated_at && (
-            <p className="mt-1 text-xs text-secondary/50">
+            <p className="mt-1 text-xs text-muted-foreground">
               Updated {new Date(profile.status_updated_at).toLocaleString()}
             </p>
           )}
@@ -152,14 +169,14 @@ export default function Profile() {
 
         {isOwn && (
           <>
-            <Card className="border-butter/30 bg-espresso-light p-4 space-y-3">
+            <Card className="rounded-2xl border border-border bg-card p-4 space-y-3">
               <h2 className="font-semibold">Edit</h2>
               <div>
-                <label className="text-xs text-secondary/60">Display name</label>
+                <label className="text-xs text-muted-foreground">Display name</label>
                 <Input value={displayName} onChange={(e) => setDisplayName(e.target.value)} maxLength={40} />
               </div>
               <div>
-                <label className="text-xs text-secondary/60">Status</label>
+                <label className="text-xs text-muted-foreground">Status</label>
                 <div className="mt-1 grid grid-cols-5 gap-1.5 sm:gap-2">
                   {ALLOWED_STATUS_EMOJI.map((e) => (
                     <button
@@ -171,29 +188,29 @@ export default function Profile() {
                         "flex flex-col items-center rounded-lg border p-1.5 sm:p-2 text-2xl transition-all overflow-hidden " +
                         (statusEmoji === e
                           ? "border-butter bg-butter/20 scale-105"
-                          : "border-butter/20 hover:border-butter/50")
+                          : "border-border hover:border-butter/50")
                       }
                     >
                       <span aria-hidden>{e}</span>
-                      <span className="mt-0.5 w-full truncate text-center text-[8px] sm:text-[9px] font-medium uppercase tracking-tight text-secondary/60">
+                      <span className="mt-0.5 w-full truncate text-center text-[8px] sm:text-[9px] font-medium uppercase tracking-tight text-muted-foreground">
                         {STATUS_EMOJI_LABELS[e]}
                       </span>
                     </button>
                   ))}
                 </div>
-                <p className="mt-1 text-[10px] text-secondary/50">10 options. The leaf represents hops.</p>
+                <p className="mt-1 text-[10px] text-muted-foreground">10 options. The leaf represents hops.</p>
               </div>
               <div>
-                <label className="text-xs text-secondary/60">Status text ({statusText.length}/60)</label>
+                <label className="text-xs text-muted-foreground">Status text ({statusText.length}/60)</label>
                 <Input value={statusText} onChange={(e) => setStatusText(e.target.value.slice(0, 60))} maxLength={60} />
               </div>
-              <div className="flex items-center justify-between rounded-lg border border-butter/20 p-3">
+              <div className="flex items-center justify-between rounded-lg border border-border p-3">
                 <div>
                   <div className="font-medium flex items-center gap-2">
                     {isPrivate ? <EyeOff className="size-4" /> : <Eye className="size-4" />}
                     {isPrivate ? "Hidden" : "Visible to friends"}
                   </div>
-                  <p className="text-xs text-secondary/60">
+                  <p className="text-xs text-muted-foreground">
                     {isPrivate ? "Only you can see your profile." : "Mutual friends can view your profile."}
                   </p>
                 </div>
@@ -205,13 +222,13 @@ export default function Profile() {
             </Card>
 
             {profile.handle && (
-              <Card className="border-butter/30 bg-espresso-light p-4 space-y-3">
+              <Card className="rounded-2xl border border-border bg-card p-4 space-y-3">
                 <h2 className="font-semibold">Your invite QR</h2>
-                <p className="text-xs text-secondary/60">@{profile.handle}</p>
+                <p className="text-xs text-muted-foreground">@{profile.handle}</p>
                 {qr ? (
                   <div className="flex flex-col items-center gap-2">
                     <div className="rounded bg-white p-3"><QRCodeSVG value={qr.webLink} size={180} /></div>
-                    <p className="text-[11px] break-all text-center text-secondary/50">{qr.webLink}</p>
+                    <p className="text-[11px] break-all text-center text-muted-foreground">{qr.webLink}</p>
                   </div>
                 ) : (
                   <Button variant="ghost" onClick={onMintQr}>Generate QR</Button>
@@ -221,8 +238,6 @@ export default function Profile() {
           </>
         )}
       </div>
-
-      <BottomNav favoritesCount={0} />
-    </main>
+    </Shell>
   );
 }
