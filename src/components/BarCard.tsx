@@ -171,47 +171,6 @@ export const BarCard = ({ bar, selected, isFavorite, onSelect, onToggleFavorite,
                       : "Outdoor unknown"}
                 </span>
               </div>
-              <div>
-                <div className="mb-2 flex items-center justify-between">
-                  <span className="text-[0.62rem] font-semibold uppercase tracking-wide text-muted-foreground">
-                    Sun timeline
-                  </span>
-                  {details.timeline_date && (
-                    <span className="text-[0.62rem] text-muted-foreground">{details.timeline_date}</span>
-                  )}
-                </div>
-                {details.sun_timeline && details.sun_timeline.length > 0 ? (
-                  <div className="grid grid-cols-12 gap-1">
-                    {details.sun_timeline.map((entry) => {
-                      const isDay = entry.sun_elev > 0;
-                      const sunlit = isDay && entry.sunlit;
-                      return (
-                        <div
-                          key={entry.hour}
-                          className={cn(
-                            "flex flex-col items-center gap-0.5 rounded-md border py-1 text-[0.6rem]",
-                            !isDay
-                              ? "border-border bg-muted/40 text-muted-foreground"
-                              : sunlit
-                                ? "border-sun/40 bg-sun/15 text-sun"
-                                : "border-border bg-muted text-muted-foreground",
-                          )}
-                          title={`${entry.hour}:00 · ${!isDay ? "Night" : sunlit ? "Sun" : "Shade"}`}
-                        >
-                          <span className="text-sm leading-none">
-                            {!isDay ? "🌙" : sunlit ? "☀️" : "🌑"}
-                          </span>
-                          <span>{entry.hour}</span>
-                        </div>
-                      );
-                    })}
-                  </div>
-                ) : (
-                  <p className="text-xs text-muted-foreground">
-                    Sun timeline not yet computed for this venue.
-                  </p>
-                )}
-              </div>
             </div>
           ) : expanded ? (
             <div className="border-t border-border/80 pt-3 text-xs text-muted-foreground animate-fade-in">
