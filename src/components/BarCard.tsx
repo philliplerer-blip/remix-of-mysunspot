@@ -1,6 +1,7 @@
 import { Heart, MapPin, Star, Sun, Sunset, TreePine } from "lucide-react";
 import { Bar, formatHour, nowHour, stateCopy } from "@/lib/bars";
 import type { DirectoryBar } from "@/hooks/use-bars-directory";
+import type { WeatherHour } from "@/hooks/use-weather";
 import { cn } from "@/lib/utils";
 
 /**
@@ -37,9 +38,11 @@ interface BarCardProps {
   onToggleFavorite: () => void;
   expanded?: boolean;
   details?: DirectoryBar | null;
+  hourlyWeather?: WeatherHour[];
+  nowHour?: number;
 }
 
-export const BarCard = ({ bar, selected, isFavorite, onSelect, onToggleFavorite, expanded, details }: BarCardProps) => {
+export const BarCard = ({ bar, selected, isFavorite, onSelect, onToggleFavorite, expanded, details, hourlyWeather, nowHour: nowHourProp }: BarCardProps) => {
   const start = ((bar.start - 11) / 11) * 100;
   const width = ((bar.end - bar.start) / 11) * 100;
   const now = ((nowHour - 11) / 11) * 100;

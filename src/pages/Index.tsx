@@ -330,6 +330,8 @@ const Index = () => {
                     selected={isExpanded}
                     expanded={isExpanded}
                     details={match}
+                    hourlyWeather={weather.hourly}
+                    nowHour={nowHour}
                     isFavorite={favorites.includes(bar.id)}
                     onSelect={() => {
                       if (selected === bar.id) {
