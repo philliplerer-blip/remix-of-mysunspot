@@ -1,60 +1,64 @@
-## Goal
-Make the web app feel like an iOS app — without adding Capacitor or a service worker. The bar list becomes a dedicated scroll region inside a fixed-height "phone screen", and we add the iOS niceties (safe areas, momentum, tap feedback, blurred tab bar).
+## Make the app responsive for iOS and Android
 
-## Changes
+Goal: one mobile-first layout that fills the screen edge-to-edge on phones (iOS Safari, Android Chrome, PWAs), respects each platform's safe areas and system UI, and still looks good on tablets/desktop.
 
-### 1. Layout: scrollable bar list inside a fixed screen
-`src/pages/Index.tsx`
-- Outer `<main>` becomes `h-[100dvh]` and the inner panel becomes a flex column that fills it.
-- Header, weather strip, filter chips, and the map keep their natural height (non-scrolling).
-- The bar list section becomes `flex-1 min-h-0 overflow-y-auto` so only the cards scroll.
-- The legend + "N bars in view" line stays pinned above the scroll region.
-- `BottomNav` stays sticky at the bottom of the panel.
-- Add `scroll-snap-type: y proximity` on the list and `scroll-snap-align: start` on each card row for a subtle settle.
+### What's wrong today
 
-### 2. Safe areas + iOS meta
-`index.html`
-- Update viewport meta to `width=device-width, initial-scale=1, viewport-fit=cover`
-- Add:
-  - `<meta name="apple-mobile-web-app-capable" content="yes">`
-  - `<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">`
-  - `<meta name="apple-mobile-web-app-title" content="Sunny Bars">`
-  - `<meta name="theme-color" content="#3d1500">`
-  - `<meta name="format-detection" content="telephone=no">`
+- Header has two clocks and a tall subtitle block, eating ~150px on small screens.
+- Map locks to 250–430px regardless of device height, leaving the bar list squeezed (especially on Android phones with on-screen nav).
+- Bottom nav label "Settings & Favorites" wraps awkwardly on narrow widths (≤360px Android).
+- Cross-platform basics missing: no Android `theme-color` handling for light/dark, no `<html>` background, no PWA manifest, no Android status-bar / gesture-inset handling, font stack is iOS-only.
+- No dynamic viewport handling — `100dvh` is used in one place but several inner sections use fixed heights; Android Chrome's collapsing URL bar and iOS keyboard cause layout jumps.
 
-`src/index.css`
-- Add safe-area utility classes (`pt-safe`, `pb-safe`, `pl-safe`, `pr-safe`) using `env(safe-area-inset-*)`.
-- Apply `pt-safe` to the header, `pb-safe` to `BottomNav`.
-- Set body font stack to `-apple-system, BlinkMacSystemFont, "SF Pro Text", system-ui, sans-serif`.
-- Globals: `-webkit-tap-highlight-color: transparent`, `-webkit-touch-callout: none`, `text-size-adjust: 100%`.
-- `html, body { overscroll-behavior: none; }` to kill whole-page rubber-band; the list container gets `overscroll-behavior: contain` so its bounce is isolated.
-- `.momentum-scroll { -webkit-overflow-scrolling: touch; }` applied to the list.
-- Hide scrollbars on the list (already a pattern in the codebase).
+### Plan
 
-### 3. Touch / tap feedback
-`src/components/BarCard.tsx`
-- Add `touch-action: manipulation` and `active:scale-[0.99] active:opacity-95 transition-transform` on the article.
-- `scroll-snap-align: start` on the article.
-- On click handler, call `navigator.vibrate?.(8)` (no-op on iOS, light haptic on Android).
+1. Cross-platform shell (`index.html`, `index.css`, `main.tsx`)
+   - Set proper title + description.
+   - Add both light and dark `theme-color` meta tags so Android tints the status bar correctly and iOS PWA matches.
+   - Add a minimal `manifest.webmanifest` (name, icons, display: standalone, background/theme colors) so the app is installable on Android and iOS.
+   - Font stack: extend to include `Roboto`, `"Noto Sans"`, `system-ui` after the Apple stack so Android renders in its native font instead of falling back to serif.
+   - Set `html, body { background: hsl(var(--espresso)); }` so the area behind safe-area insets matches the header on both platforms (no white flash on overscroll).
 
-`src/components/BottomNav.tsx`
-- Translucent blurred background: `bg-espresso/80 backdrop-blur-xl`.
-- Add `pb-safe` so it clears the home indicator.
-- Bump tap targets to min 44×44 (`min-h-11`).
-- `touch-action: manipulation` on each NavLink.
+2. Responsive viewport sizing
+   - Replace ad-hoc `100dvh` usage with a CSS custom property `--app-h: 100dvh` (with `100vh` fallback) and use `min-h-[var(--app-h)]` for the main container.
+   - Make the map height fluid: `h-[clamp(180px,32svh,360px)]` collapsed and `clamp(260px,46svh,460px)` expanded. Uses `svh` so it doesn't jump when Android's URL bar collapses.
+   - Ensure the bar-list section is the flex-grow region (`flex-1 min-h-0`) and the only scroller; everything else is sticky/fixed sized.
 
-### 4. Sticky filter chips
-`src/pages/Index.tsx`
-- Wrap the filter row in `sticky top-0 z-10` inside the scroll region's parent (or keep above scroll region) with a translucent backdrop so it feels like an iOS segmented header. Decide on whichever lines up cleanly with the existing map block — placed above the scroll region (non-sticky) is simplest and matches current visual hierarchy.
+3. Safe-area + system UI (iOS notch + Android gesture bar)
+   - Confirm `viewport-fit=cover` (already present).
+   - Use `pt-safe`, `pb-safe`, `pl-safe`, `pr-safe` utilities on the outer `<main>` instead of just the header, so landscape iPhones don't clip content behind the notch.
+   - BottomNav: keep `pb-safe` and add `min-height: calc(56px + env(safe-area-inset-bottom))` so Android 3-button nav doesn't overlap.
 
-### Files touched
-- `index.html`
-- `src/index.css`
-- `src/pages/Index.tsx`
-- `src/components/BarCard.tsx`
-- `src/components/BottomNav.tsx`
+4. Tighten the header (saves ~120px)
+   - Remove the duplicate clock in the top-right (keep date + time once).
+   - Drop the subtitle line; merge "Live sun finder" + location into one compact row.
+   - Make the weather card a single-row strip (icon · short status · sun%).
 
-### Out of scope
-- Capacitor / native wrapper
-- Service worker / PWA install flow
-- Real haptics (requires native)
+5. Bar list & cards
+   - Cards: `p-3 sm:p-4`, larger tap targets (min 44px on iOS, 48dp on Android) for the heart and select areas.
+   - Add `content-visibility: auto` on offscreen cards for smoother Android scrolling.
+   - Keep momentum scrolling utility; add `overscroll-behavior-y: contain` on the list and `none` on `<html>` (already set) so pull-to-refresh doesn't fight the in-app scroll.
+
+6. BottomNav fixes
+   - Shorten label "Settings & Favorites" → "Favorites".
+   - Use `text-[0.65rem]` on ≤360px (`xs:` breakpoint via Tailwind config) to prevent wrap.
+   - Ensure each tab is ≥48dp tall.
+
+7. Tablet/desktop preserved
+   - Keep the existing `sm:` "phone frame" centered card (max-w 430px). On `lg+`, allow a wider 2-column layout (map left, list right) — optional, behind the same `sm:` breakpoint we already use, so no regressions.
+
+### Technical notes
+
+- Files touched: `index.html`, `public/manifest.webmanifest` (new), `src/index.css`, `src/pages/Index.tsx`, `src/components/BottomNav.tsx`, `src/components/BarCard.tsx`, `tailwind.config.ts` (add `xs: 360px` breakpoint).
+- No new dependencies. Pure CSS/Tailwind + meta tags.
+- `svh`/`dvh` units are supported in iOS Safari 15.4+ and Android Chrome 108+; `vh` fallback kept.
+- `content-visibility` is Chromium-only — graceful no-op on Safari.
+- Native packaging (Capacitor) is not part of this change; this is web-only responsive polish.
+
+### What you'll notice
+
+- App fills the phone screen edge-to-edge with no white bars.
+- Status bar tinted to match the header on both iOS and Android.
+- Bar list gets ~150px more vertical room and scrolls smoothly.
+- Bottom nav labels no longer wrap on small Android devices.
+- Installable as a PWA from Android Chrome's "Add to Home screen" with proper icon/colors.
