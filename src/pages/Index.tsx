@@ -387,6 +387,59 @@ const Index = () => {
         initialSpot={editingSpot}
         onDelete={editingSpot ? () => removeSpot(editingSpot.id) : undefined}
       />
+      <Sheet open={searchOpen} onOpenChange={setSearchOpen}>
+        <SheetContent side="left" className="w-[88vw] max-w-[380px] p-0 flex flex-col bg-background">
+          <SheetHeader className="border-b border-border px-4 py-4">
+            <SheetTitle className="font-display text-xl">Search bars</SheetTitle>
+            <div className="relative mt-2">
+              <Search className="absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
+              <Input
+                autoFocus
+                placeholder="Search by name or area"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="pl-9"
+              />
+            </div>
+            <p className="text-[0.68rem] text-muted-foreground">Sorted by distance from you</p>
+          </SheetHeader>
+          <div className="flex-1 overflow-y-auto px-2 py-2">
+            {(() => {
+              const q = searchQuery.trim().toLowerCase();
+              const list = [...directoryBarsAsBars]
+                .filter((b) => !q || b.name.toLowerCase().includes(q) || b.area.toLowerCase().includes(q))
+                .sort((a, b) => {
+                  const da = (a.lat - geo.lat) ** 2 + (a.lng - geo.lng) ** 2;
+                  const db = (b.lat - geo.lat) ** 2 + (b.lng - geo.lng) ** 2;
+                  return da - db;
+                });
+              if (list.length === 0) {
+                return <p className="px-3 py-6 text-center text-sm text-muted-foreground">No matches</p>;
+              }
+              return list.map((b) => (
+                <button
+                  key={b.id}
+                  onClick={() => {
+                    setSelected(b.id);
+                    setSearchOpen(false);
+                    setExpanded(false);
+                    requestAnimationFrame(() => {
+                      cardRefs.current[b.id]?.scrollIntoView({ behavior: "smooth", block: "center" });
+                    });
+                  }}
+                  className="flex w-full items-center justify-between gap-3 rounded-xl px-3 py-2.5 text-left transition-colors hover:bg-muted"
+                >
+                  <div className="min-w-0">
+                    <p className="truncate text-sm font-semibold text-foreground">{b.name}</p>
+                    <p className="truncate text-xs text-muted-foreground">{b.area} · {stateCopy[b.state].label}</p>
+                  </div>
+                  <span className="shrink-0 text-xs text-muted-foreground">{b.dist}</span>
+                </button>
+              ));
+            })()}
+          </div>
+        </SheetContent>
+      </Sheet>
     </main>
   );
 };
