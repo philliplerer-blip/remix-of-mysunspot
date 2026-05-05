@@ -160,7 +160,7 @@ export default function Profile() {
               </div>
               <div>
                 <label className="text-xs text-secondary/60">Status</label>
-                <div className="mt-1 grid grid-cols-5 gap-2">
+                <div className="mt-1 grid grid-cols-5 gap-1.5 sm:gap-2">
                   {ALLOWED_STATUS_EMOJI.map((e) => (
                     <button
                       key={e}
@@ -168,14 +168,14 @@ export default function Profile() {
                       aria-label={STATUS_EMOJI_LABELS[e]}
                       onClick={() => setStatusEmoji(statusEmoji === e ? null : e)}
                       className={
-                        "flex flex-col items-center rounded-lg border p-2 text-2xl transition-all " +
+                        "flex flex-col items-center rounded-lg border p-1.5 sm:p-2 text-2xl transition-all overflow-hidden " +
                         (statusEmoji === e
                           ? "border-butter bg-butter/20 scale-105"
                           : "border-butter/20 hover:border-butter/50")
                       }
                     >
                       <span aria-hidden>{e}</span>
-                      <span className="mt-0.5 text-[9px] font-medium uppercase tracking-wide text-secondary/60">
+                      <span className="mt-0.5 w-full truncate text-center text-[8px] sm:text-[9px] font-medium uppercase tracking-tight text-secondary/60">
                         {STATUS_EMOJI_LABELS[e]}
                       </span>
                     </button>
