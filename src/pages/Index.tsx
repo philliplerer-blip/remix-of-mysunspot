@@ -142,6 +142,19 @@ const Index = () => {
   const [editingSpot, setEditingSpot] = useState<CustomSpot | null>(null);
   const [selectedDirectoryBar, setSelectedDirectoryBar] = useState<DirectoryBar | null>(null);
   const cardRefs = useRef<Record<number, HTMLDivElement | null>>({});
+  const listRef = useRef<HTMLElement | null>(null);
+  const lastScrollTop = useRef(0);
+
+  const handleListScroll = (e: React.UIEvent<HTMLElement>) => {
+    const top = e.currentTarget.scrollTop;
+    const prev = lastScrollTop.current;
+    if (top > prev + 4 && top > 16 && expanded) {
+      setExpanded(false);
+    } else if (top <= 4 && !expanded) {
+      setExpanded(true);
+    }
+    lastScrollTop.current = top;
+  };
 
   const openAddDialog = (position: { x: number; y: number } | null) => {
     setEditingSpot(null);
@@ -293,7 +306,11 @@ const Index = () => {
           </div>
         </section>
 
-        <section className="momentum-scroll flex-1 min-h-0 overflow-y-auto bg-background px-4 py-3 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+        <section
+          ref={listRef}
+          onScroll={handleListScroll}
+          className="momentum-scroll flex-1 min-h-0 overflow-y-auto bg-background px-4 py-3 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+        >
           <div className="flex items-center gap-3 px-1 text-xs text-muted-foreground">
             <span className="flex items-center gap-1"><span className="size-2 rounded-full bg-sun" /> Full sun</span>
             <span className="flex items-center gap-1"><span className="size-2 rounded-full bg-flame" /> Later</span>
