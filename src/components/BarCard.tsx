@@ -1,6 +1,7 @@
 import { Heart, MapPin, Star, Sun, Sunset, TreePine } from "lucide-react";
 import { Bar, formatHour, nowHour, stateCopy } from "@/lib/bars";
 import type { DirectoryBar } from "@/hooks/use-bars-directory";
+import type { WeatherHour } from "@/hooks/use-weather";
 import { cn } from "@/lib/utils";
 
 /**
@@ -37,9 +38,11 @@ interface BarCardProps {
   onToggleFavorite: () => void;
   expanded?: boolean;
   details?: DirectoryBar | null;
+  hourlyWeather?: WeatherHour[];
+  nowHour?: number;
 }
 
-export const BarCard = ({ bar, selected, isFavorite, onSelect, onToggleFavorite, expanded, details }: BarCardProps) => {
+export const BarCard = ({ bar, selected, isFavorite, onSelect, onToggleFavorite, expanded, details, hourlyWeather, nowHour: nowHourProp }: BarCardProps) => {
   const start = ((bar.start - 11) / 11) * 100;
   const width = ((bar.end - bar.start) / 11) * 100;
   const now = ((nowHour - 11) / 11) * 100;
@@ -123,6 +126,28 @@ export const BarCard = ({ bar, selected, isFavorite, onSelect, onToggleFavorite,
             <div className="space-y-3 border-t border-border/80 pt-3 text-sm animate-fade-in">
               {details.address && (
                 <p className="text-xs text-muted-foreground">{details.address}</p>
+              )}
+              {hourlyWeather && hourlyWeather.length > 0 && (
+                <div>
+                  <p className="mb-1.5 text-[0.62rem] font-semibold uppercase tracking-wide text-muted-foreground">
+                    Hourly forecast
+                  </p>
+                  <div className="flex gap-1.5 overflow-x-auto pb-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+                    {hourlyWeather.map((hour) => (
+                      <div
+                        key={hour.hour}
+                        className={cn(
+                          "min-w-12 shrink-0 rounded-lg border border-border/70 bg-muted/40 px-2 py-1.5 text-center",
+                          hour.hour === nowHourProp && "border-sun bg-sun/15",
+                        )}
+                      >
+                        <p className="text-[0.6rem] text-muted-foreground">{hour.time}:00</p>
+                        <p className="text-sm leading-4">{hour.icon}</p>
+                        <p className="text-[0.62rem] font-semibold">{hour.sunPct}%</p>
+                      </div>
+                    ))}
+                  </div>
+                </div>
               )}
               <div className="flex flex-wrap items-center gap-x-4 gap-y-2 text-xs">
                 <span className="flex items-center gap-1">

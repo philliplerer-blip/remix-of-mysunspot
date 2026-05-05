@@ -241,25 +241,6 @@ const Index = () => {
             </div>
           </div>
 
-          <div className="mt-3 flex gap-2 overflow-x-auto pb-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
-            {weather.loading && (
-              <div className="text-xs text-muted-foreground">Loading hourly forecast…</div>
-            )}
-            {!weather.loading &&
-              weather.hourly.map((hour) => (
-                <div
-                  key={hour.hour}
-                  className={cn(
-                    "min-w-14 rounded-xl border border-butter/20 bg-cream/8 px-3 py-2 text-center",
-                    hour.hour === nowHour && "border-sun bg-sun/15",
-                  )}
-                >
-                  <p className="text-[0.62rem] text-muted-foreground">{hour.time}:00</p>
-                  <p className="text-base leading-5">{hour.icon}</p>
-                  <p className="text-[0.68rem] font-semibold text-secondary">{hour.sunPct}%</p>
-                </div>
-              ))}
-          </div>
         </div>
 
         <nav className="flex gap-2 overflow-x-auto bg-espresso-soft px-5 pb-4 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden" aria-label="Bar filters">
@@ -349,6 +330,8 @@ const Index = () => {
                     selected={isExpanded}
                     expanded={isExpanded}
                     details={match}
+                    hourlyWeather={weather.hourly}
+                    nowHour={nowHour}
                     isFavorite={favorites.includes(bar.id)}
                     onSelect={() => {
                       if (selected === bar.id) {
