@@ -67,9 +67,10 @@ export const BarCard = ({ bar, selected, isFavorite, onSelect, onToggleFavorite,
 
   return (
     <article
-      onClick={onSelect}
+      onClick={() => { navigator.vibrate?.(8); onSelect?.(); }}
+      style={{ touchAction: "manipulation" }}
       className={cn(
-        "cursor-pointer rounded-2xl border bg-card p-3 transition-all hover:-translate-y-0.5 hover:shadow-sun",
+        "snap-card cursor-pointer rounded-2xl border bg-card p-3 transition-all hover:-translate-y-0.5 hover:shadow-sun active:scale-[0.99] active:opacity-95",
         selected ? "border-primary shadow-sun" : "border-border/80",
         expanded && "scale-[1.01] shadow-sun",
       )}
