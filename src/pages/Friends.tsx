@@ -311,22 +311,69 @@ export default function Friends() {
           </Card>
 
           <Card className="border-butter/30 bg-espresso-light p-4 space-y-3">
-            <h3 className="font-semibold">Your invite QR</h3>
+            <div className="flex items-center justify-between">
+              <h3 className="font-semibold">Your invite QR</h3>
+              {qr && (
+                <span
+                  className={
+                    "rounded-full px-2 py-0.5 text-xs font-medium " +
+                    (qr.expiresAt - now <= 0
+                      ? "bg-red-500/20 text-red-300"
+                      : qr.expiresAt - now < 60 * 60_000
+                      ? "bg-amber-500/20 text-amber-300"
+                      : "bg-emerald-500/20 text-emerald-300")
+                  }
+                  aria-live="polite"
+                >
+                  {qr.expiresAt - now <= 0 ? "expired" : `expires in ${formatCountdown(qr.expiresAt - now)}`}
+                </span>
+              )}
+            </div>
             {!profile.handle && <p className="text-xs text-secondary/60">Set your handle first.</p>}
             {qr ? (
-              <div className="flex flex-col items-center gap-2">
-                <div className="rounded bg-white p-3"><QRCodeSVG value={qr.webLink} size={200} /></div>
-                <p className="text-xs text-secondary/60">Expires {new Date(qr.expiresAt).toLocaleString()}</p>
-                <Button variant="ghost" size="sm" onClick={onMintQr}>Refresh</Button>
+              <div className="flex flex-col items-center gap-3">
+                <div className={"relative rounded bg-white p-3 " + (qr.expiresAt - now <= 0 ? "opacity-40" : "")}>
+                  <QRCodeSVG value={qr.webLink} size={200} />
+                  {qr.expiresAt - now <= 0 && (
+                    <div className="absolute inset-0 flex items-center justify-center text-xs font-semibold uppercase tracking-wide text-red-600">
+                      Expired
+                    </div>
+                  )}
+                </div>
+                <p className="break-all text-center text-[11px] text-secondary/50">{qr.webLink}</p>
+                <div className="flex w-full gap-2">
+                  <Button variant="ghost" size="sm" className="flex-1" onClick={onCopyLink} disabled={qr.expiresAt - now <= 0}>
+                    <Copy className="mr-1 size-4" /> Copy link
+                  </Button>
+                  <Button variant="ghost" size="sm" className="flex-1" onClick={() => onMintQr(false)} disabled={qrLoading}>
+                    {qrLoading ? <Loader2 className="mr-1 size-4 animate-spin" /> : <RefreshCw className="mr-1 size-4" />}
+                    Regenerate
+                  </Button>
+                </div>
               </div>
             ) : (
-              <Button onClick={onMintQr} disabled={!profile.handle}>Generate QR</Button>
+              <Button onClick={() => onMintQr(true)} disabled={!profile.handle || qrLoading}>
+                {qrLoading ? <Loader2 className="mr-1 size-4 animate-spin" /> : <QrCode className="mr-1 size-4" />}
+                Generate QR
+              </Button>
             )}
           </Card>
 
           <Card className="border-butter/30 bg-espresso-light p-4 space-y-2">
-            <h3 className="font-semibold">Scan a friend's QR</h3>
-            {scanning ? <div id="qr-reader" className="overflow-hidden rounded" /> : (
+            <div className="flex items-center justify-between">
+              <h3 className="font-semibold">Scan a friend's QR</h3>
+              {scanning && (
+                <Button variant="ghost" size="sm" onClick={stopScan}>
+                  <X className="mr-1 size-4" /> Cancel
+                </Button>
+              )}
+            </div>
+            {scanning ? (
+              <>
+                <div id="qr-reader" className="overflow-hidden rounded bg-black/30" />
+                <p className="text-xs text-secondary/60">Point your camera at your friend's invite QR.</p>
+              </>
+            ) : (
               <Button onClick={startScan}>Open scanner</Button>
             )}
           </Card>
