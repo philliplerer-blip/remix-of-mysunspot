@@ -1,0 +1,14 @@
+{
+  "name": "Sunny Bars",
+  "short_name": "Sunny Bars",
+  "description": "Live sun finder for Copenhagen terraces and bars.",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#3d1500",
+  "theme_color": "#3d1500",
+  "icons": [
+    { "src": "/placeholder.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any" }
+  ]
+}
