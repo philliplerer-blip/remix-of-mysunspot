@@ -5,6 +5,8 @@ import { BarCard } from "@/components/BarCard";
 import { BottomNav } from "@/components/BottomNav";
 import { AddSpotDialog } from "@/components/AddSpotDialog";
 import { MapView } from "@/components/MapView";
+import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
+import { Input } from "@/components/ui/input";
 import { useFavorites } from "@/hooks/use-favorites";
 import { useCustomSpots } from "@/hooks/use-custom-spots";
 import { useBarsDirectory } from "@/hooks/use-bars-directory";
@@ -138,6 +140,8 @@ const Index = () => {
     return best;
   };
   const [spotDialogOpen, setSpotDialogOpen] = useState(false);
+  const [searchOpen, setSearchOpen] = useState(false);
+  const [searchQuery, setSearchQuery] = useState("");
   const [pendingPosition, setPendingPosition] = useState<{ x: number; y: number } | null>(null);
   const [editingSpot, setEditingSpot] = useState<CustomSpot | null>(null);
   const [selectedDirectoryBar, setSelectedDirectoryBar] = useState<DirectoryBar | null>(null);
@@ -212,7 +216,7 @@ const Index = () => {
                 {geo.source === "gps" ? "Your location" : "Copenhagen"} · {now.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
               </p>
             </div>
-            <Button variant="glass" size="icon" aria-label="Search sunny bars" className="shrink-0"><Search className="size-4" /></Button>
+            <Button variant="glass" size="icon" aria-label="Search sunny bars" className="shrink-0" onClick={() => setSearchOpen(true)}><Search className="size-4" /></Button>
           </div>
         </header>
 
