@@ -188,9 +188,9 @@ const Index = () => {
     visibleBars.find((bar) => bar.id === selected) ?? visibleBars[0] ?? bars[0];
 
   return (
-    <main className="min-h-screen bg-app-gradient px-4 py-4 text-foreground sm:py-8">
-      <section className="mx-auto flex min-h-[calc(100vh-2rem)] w-full max-w-[430px] flex-col overflow-hidden rounded-[2rem] border border-butter/60 bg-background shadow-panel animate-rise-in">
-        <header className="bg-espresso px-5 pb-4 pt-3 text-secondary">
+    <main className="h-[100dvh] overflow-hidden bg-app-gradient px-0 text-foreground sm:px-4 sm:py-8">
+      <section className="mx-auto flex h-full w-full max-w-[430px] flex-col overflow-hidden border-butter/60 bg-background shadow-panel animate-rise-in sm:h-[calc(100dvh-4rem)] sm:rounded-[2rem] sm:border">
+        <header className="bg-espresso px-5 pb-4 pt-3 text-secondary pt-safe">
           <div className="flex items-center justify-between text-[0.7rem] text-muted-foreground">
             <span>
               {now.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
@@ -323,7 +323,7 @@ const Index = () => {
           </div>
         </section>
 
-        <section className="bg-background px-4 py-3">
+        <section className="momentum-scroll flex-1 min-h-0 overflow-y-auto bg-background px-4 py-3 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
           <div className="flex items-center gap-3 px-1 text-xs text-muted-foreground">
             <span className="flex items-center gap-1"><span className="size-2 rounded-full bg-sun" /> Full sun</span>
             <span className="flex items-center gap-1"><span className="size-2 rounded-full bg-flame" /> Later</span>
