@@ -1,12 +1,1 @@
-project_id = "pqrvemaaokhumfcnohfe"
-[functions.check-sunny-spots]
-verify_jwt = false
-
-[functions.maps-config]
-verify_jwt = false
-
-[functions.refresh-bars-directory]
-verify_jwt = false
-
-[functions.compute-sun-timeline]
-verify_jwt = false
+project_id = "qamhxhmtnvdotwhcuybs"
