@@ -142,6 +142,40 @@ const Index = () => {
   const [spotDialogOpen, setSpotDialogOpen] = useState(false);
   const [searchOpen, setSearchOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
+  const [dragX, setDragX] = useState(0);
+  const touchStartX = useRef<number | null>(null);
+  const touchStartY = useRef<number | null>(null);
+  const swipeLocked = useRef<boolean>(false);
+
+  const handleSheetTouchStart = (e: React.TouchEvent) => {
+    const t = e.touches[0];
+    touchStartX.current = t.clientX;
+    touchStartY.current = t.clientY;
+    swipeLocked.current = false;
+  };
+  const handleSheetTouchMove = (e: React.TouchEvent) => {
+    if (touchStartX.current == null || touchStartY.current == null) return;
+    const t = e.touches[0];
+    const dx = t.clientX - touchStartX.current;
+    const dy = t.clientY - touchStartY.current;
+    if (!swipeLocked.current) {
+      if (Math.abs(dx) > 8 || Math.abs(dy) > 8) {
+        swipeLocked.current = Math.abs(dx) > Math.abs(dy);
+      }
+    }
+    if (swipeLocked.current && dx > 0) {
+      setDragX(dx);
+    }
+  };
+  const handleSheetTouchEnd = () => {
+    if (dragX > 80) {
+      setSearchOpen(false);
+    }
+    setDragX(0);
+    touchStartX.current = null;
+    touchStartY.current = null;
+    swipeLocked.current = false;
+  };
   const [pendingPosition, setPendingPosition] = useState<{ x: number; y: number } | null>(null);
   const [editingSpot, setEditingSpot] = useState<CustomSpot | null>(null);
   const [selectedDirectoryBar, setSelectedDirectoryBar] = useState<DirectoryBar | null>(null);
@@ -391,6 +425,14 @@ const Index = () => {
         <SheetContent
           side="right"
           className="w-[88vw] max-w-[380px] p-0 flex flex-col border-l border-border bg-background/95 backdrop-blur-xl pt-safe pb-safe"
+          style={{
+            transform: dragX > 0 ? `translateX(${dragX}px)` : undefined,
+            transition: dragX > 0 ? "none" : undefined,
+          }}
+          onTouchStart={handleSheetTouchStart}
+          onTouchMove={handleSheetTouchMove}
+          onTouchEnd={handleSheetTouchEnd}
+          onTouchCancel={handleSheetTouchEnd}
         >
           <SheetHeader className="space-y-3 border-b border-border/60 px-4 pb-3 pt-4 text-left">
             <div className="flex items-center justify-between">
