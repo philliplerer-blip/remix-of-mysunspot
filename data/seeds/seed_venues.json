@@ -313,8 +313,8 @@
   },
   {
     "name": "Pirlo",
-    "lat": null,
-    "lng": null,
+    "lat": 55.6608,
+    "lng": 12.5949,
     "neighborhood": "Amager",
     "venue_type": [
       "restaurant"
@@ -332,8 +332,8 @@
   },
   {
     "name": "Tramonto",
-    "lat": null,
-    "lng": null,
+    "lat": 55.66583,
+    "lng": 12.54187,
     "neighborhood": "Carlsberg Byen",
     "venue_type": [
       "restaurant"
@@ -352,8 +352,8 @@
   },
   {
     "name": "Circolo",
-    "lat": null,
-    "lng": null,
+    "lat": 55.679,
+    "lng": 12.5467,
     "neighborhood": "Frederiksberg",
     "venue_type": [
       "restaurant"
@@ -371,8 +371,8 @@
   },
   {
     "name": "Italo Caffé",
-    "lat": null,
-    "lng": null,
+    "lat": 55.67699,
+    "lng": 12.54686,
     "neighborhood": "Frederiksberg",
     "venue_type": [
       "cafe"
@@ -389,8 +389,8 @@
   },
   {
     "name": "Piola Pastificio",
-    "lat": null,
-    "lng": null,
+    "lat": 55.6794,
+    "lng": 12.5293,
     "neighborhood": "Frederiksberg",
     "venue_type": [
       "restaurant"
@@ -407,8 +407,8 @@
   },
   {
     "name": "Restaurant Gemini",
-    "lat": null,
-    "lng": null,
+    "lat": 55.6815,
+    "lng": 12.5557,
     "neighborhood": "Frederiksberg",
     "venue_type": [
       "restaurant"
@@ -425,8 +425,8 @@
   },
   {
     "name": "Scarpetta",
-    "lat": null,
-    "lng": null,
+    "lat": 55.6799,
+    "lng": 12.5467,
     "neighborhood": "Frederiksberg",
     "venue_type": [
       "restaurant"
@@ -443,8 +443,8 @@
   },
   {
     "name": "Apollo Bar",
-    "lat": null,
-    "lng": null,
+    "lat": 55.6878,
+    "lng": 12.5809,
     "neighborhood": "Indre By",
     "venue_type": [
       "restaurant"
@@ -462,8 +462,8 @@
   },
   {
     "name": "Boltens Gård",
-    "lat": null,
-    "lng": null,
+    "lat": 55.6825,
+    "lng": 12.5851,
     "neighborhood": "Indre By",
     "venue_type": [
       "restaurant",
@@ -481,8 +481,8 @@
   },
   {
     "name": "Brewpub",
-    "lat": null,
-    "lng": null,
+    "lat": 55.6775,
+    "lng": 12.5722,
     "neighborhood": "Indre By",
     "venue_type": [
       "bar"
@@ -500,8 +500,8 @@
   },
   {
     "name": "Café på Post & Tele Museum",
-    "lat": null,
-    "lng": null,
+    "lat": 55.6813,
+    "lng": 12.5782,
     "neighborhood": "Indre By",
     "venue_type": [
       "cafe"
@@ -518,8 +518,8 @@
   },
   {
     "name": "Darling Bistro & Bar",
-    "lat": null,
-    "lng": null,
+    "lat": 55.6748,
+    "lng": 12.5784,
     "neighborhood": "Indre By",
     "venue_type": [
       "restaurant",
@@ -537,8 +537,8 @@
   },
   {
     "name": "Hotel Danmark Rooftop",
-    "lat": null,
-    "lng": null,
+    "lat": 55.6766,
+    "lng": 12.5678,
     "neighborhood": "Indre By",
     "venue_type": [
       "rooftop",
@@ -557,8 +557,8 @@
   },
   {
     "name": "Hotel Grand Joanne Rooftop",
-    "lat": null,
-    "lng": null,
+    "lat": 55.6732,
+    "lng": 12.5643,
     "neighborhood": "Indre By",
     "venue_type": [
       "rooftop",
@@ -577,8 +577,8 @@
   },
   {
     "name": "Hotel SP34 Rooftop",
-    "lat": null,
-    "lng": null,
+    "lat": 55.6759,
+    "lng": 12.5683,
     "neighborhood": "Indre By",
     "venue_type": [
       "rooftop",
@@ -597,8 +597,8 @@
   },
   {
     "name": "Illum Rooftop",
-    "lat": null,
-    "lng": null,
+    "lat": 55.6803,
+    "lng": 12.5807,
     "neighborhood": "Indre By",
     "venue_type": [
       "rooftop"
@@ -616,8 +616,8 @@
   },
   {
     "name": "Kismet",
-    "lat": null,
-    "lng": null,
+    "lat": 55.6852,
+    "lng": 12.5815,
     "neighborhood": "Indre By",
     "venue_type": [
       "cafe"
@@ -634,8 +634,8 @@
   },
   {
     "name": "Llama",
-    "lat": null,
-    "lng": null,
+    "lat": 55.6796,
+    "lng": 12.5808,
     "neighborhood": "Indre By",
     "venue_type": [
       "restaurant"
@@ -652,8 +652,8 @@
   },
   {
     "name": "Manon Les Suites",
-    "lat": null,
-    "lng": null,
+    "lat": 55.6773,
+    "lng": 12.5664,
     "neighborhood": "Indre By",
     "venue_type": [
       "rooftop"
@@ -670,8 +670,8 @@
   },
   {
     "name": "Petanque",
-    "lat": null,
-    "lng": null,
+    "lat": 55.6811,
+    "lng": 12.5789,
     "neighborhood": "Indre By",
     "venue_type": [
       "bar"
@@ -689,8 +689,8 @@
   },
   {
     "name": "Restaurant Babylon (Søpavillonen)",
-    "lat": null,
-    "lng": null,
+    "lat": 55.6858,
+    "lng": 12.5617,
     "neighborhood": "Indre By",
     "venue_type": [
       "restaurant"
@@ -707,8 +707,8 @@
   },
   {
     "name": "Restaurant Tårnet",
-    "lat": null,
-    "lng": null,
+    "lat": 55.6761,
+    "lng": 12.5796,
     "neighborhood": "Indre By",
     "venue_type": [
       "restaurant"
@@ -727,8 +727,8 @@
   },
   {
     "name": "Roof Bar",
-    "lat": null,
-    "lng": null,
+    "lat": 55.6733,
+    "lng": 12.5677,
     "neighborhood": "Indre By",
     "venue_type": [
       "rooftop"
@@ -746,8 +746,8 @@
   },
   {
     "name": "Seaside Toldboden",
-    "lat": null,
-    "lng": null,
+    "lat": 55.6902,
+    "lng": 12.5957,
     "neighborhood": "Indre By",
     "venue_type": [
       "restaurant",
@@ -766,8 +766,8 @@
   },
   {
     "name": "Vækst",
-    "lat": null,
-    "lng": null,
+    "lat": 55.6794,
+    "lng": 12.5724,
     "neighborhood": "Indre By",
     "venue_type": [
       "restaurant"
@@ -784,8 +784,8 @@
   },
   {
     "name": "Bistro Summér",
-    "lat": null,
-    "lng": null,
+    "lat": 55.6803,
+    "lng": 12.5894,
     "neighborhood": "Indre By/Nyhavn",
     "venue_type": [
       "restaurant"
@@ -802,8 +802,8 @@
   },
   {
     "name": "Corsa Nordhavn",
-    "lat": null,
-    "lng": null,
+    "lat": 55.7089,
+    "lng": 12.5942,
     "neighborhood": "Nordhavn",
     "venue_type": [
       "restaurant"
@@ -820,8 +820,8 @@
   },
   {
     "name": "Restaurant Silo",
-    "lat": null,
-    "lng": null,
+    "lat": 55.7087,
+    "lng": 12.5985,
     "neighborhood": "Nordhavn",
     "venue_type": [
       "restaurant",
@@ -840,8 +840,8 @@
   },
   {
     "name": "Restaurant Judie",
-    "lat": null,
-    "lng": null,
+    "lat": 55.681,
+    "lng": 12.5912,
     "neighborhood": "Nyhavn",
     "venue_type": [
       "restaurant"
@@ -857,8 +857,8 @@
   },
   {
     "name": "Kima",
-    "lat": null,
-    "lng": null,
+    "lat": 55.7055,
+    "lng": 12.5475,
     "neighborhood": "Nørrebro",
     "venue_type": [
       "restaurant"
@@ -875,8 +875,8 @@
   },
   {
     "name": "Lunden",
-    "lat": null,
-    "lng": null,
+    "lat": 55.6964,
+    "lng": 12.5534,
     "neighborhood": "Nørrebro",
     "venue_type": [
       "restaurant"
@@ -892,8 +892,8 @@
   },
   {
     "name": "Aure",
-    "lat": null,
-    "lng": null,
+    "lat": 55.6947,
+    "lng": 12.6124,
     "neighborhood": "Refshaleøen",
     "venue_type": [
       "restaurant"
@@ -910,8 +910,8 @@
   },
   {
     "name": "Reffen",
-    "lat": null,
-    "lng": null,
+    "lat": 55.6947,
+    "lng": 12.6059,
     "neighborhood": "Refshaleøen",
     "venue_type": [
       "restaurant"
@@ -927,8 +927,8 @@
   },
   {
     "name": "PAULI",
-    "lat": null,
-    "lng": null,
+    "lat": 55.6542,
+    "lng": 12.5398,
     "neighborhood": "Sydhavn",
     "venue_type": [
       "restaurant",
@@ -946,8 +946,8 @@
   },
   {
     "name": "Café Asta",
-    "lat": null,
-    "lng": null,
+    "lat": 55.6619,
+    "lng": 12.5108,
     "neighborhood": "Valby",
     "venue_type": [
       "cafe"
@@ -965,8 +965,8 @@
   },
   {
     "name": "Corsa Vesterbro",
-    "lat": null,
-    "lng": null,
+    "lat": 55.6687,
+    "lng": 12.5549,
     "neighborhood": "Vesterbro",
     "venue_type": [
       "restaurant"
@@ -982,8 +982,8 @@
   },
   {
     "name": "Do More",
-    "lat": null,
-    "lng": null,
+    "lat": 55.6659,
+    "lng": 12.5538,
     "neighborhood": "Vesterbro",
     "venue_type": [
       "restaurant",
@@ -1003,8 +1003,8 @@
   },
   {
     "name": "H15 Halmtorvet",
-    "lat": null,
-    "lng": null,
+    "lat": 55.6683,
+    "lng": 12.5574,
     "neighborhood": "Vesterbro",
     "venue_type": [
       "restaurant",
@@ -1022,8 +1022,8 @@
   },
   {
     "name": "KAJEN",
-    "lat": null,
-    "lng": null,
+    "lat": 55.6615,
+    "lng": 12.553,
     "neighborhood": "Vesterbro",
     "venue_type": [
       "restaurant",
@@ -1043,8 +1043,8 @@
   },
   {
     "name": "Level Six",
-    "lat": null,
-    "lng": null,
+    "lat": 55.6673,
+    "lng": 12.5667,
     "neighborhood": "Vesterbro",
     "venue_type": [
       "rooftop"
@@ -1061,8 +1061,8 @@
   },
   {
     "name": "Lidkoeb",
-    "lat": null,
-    "lng": null,
+    "lat": 55.6687,
+    "lng": 12.5466,
     "neighborhood": "Vesterbro",
     "venue_type": [
       "bar"
@@ -1079,8 +1079,8 @@
   },
   {
     "name": "Restaurant Cofoco",
-    "lat": null,
-    "lng": null,
+    "lat": 55.6683,
+    "lng": 12.555,
     "neighborhood": "Vesterbro",
     "venue_type": [
       "restaurant"
@@ -1096,8 +1096,8 @@
   },
   {
     "name": "Tivoli Biergarten",
-    "lat": null,
-    "lng": null,
+    "lat": 55.6738,
+    "lng": 12.5684,
     "neighborhood": "Vesterbro/Tivoli",
     "venue_type": [
       "bar"
@@ -1113,8 +1113,8 @@
   },
   {
     "name": "Corsa Østerbro",
-    "lat": null,
-    "lng": null,
+    "lat": 55.704,
+    "lng": 12.5754,
     "neighborhood": "Østerbro",
     "venue_type": [
       "restaurant"
@@ -1131,8 +1131,8 @@
   },
   {
     "name": "Gro Spiseri (ØsterGRO)",
-    "lat": null,
-    "lng": null,
+    "lat": 55.7112,
+    "lng": 12.5783,
     "neighborhood": "Østerbro",
     "venue_type": [
       "restaurant"
@@ -1151,8 +1151,8 @@
   },
   {
     "name": "Pavillon",
-    "lat": null,
-    "lng": null,
+    "lat": 55.6945,
+    "lng": 12.5672,
     "neighborhood": "Østerbro",
     "venue_type": [
       "bar"
