@@ -493,6 +493,51 @@ export type Database = {
         }
         Relationships: []
       }
+      venues: {
+        Row: {
+          confidence: string
+          id: string
+          imported_at: string
+          lat: number | null
+          lng: number | null
+          name: string
+          needs_geocoding: boolean
+          neighborhood: string
+          note: string | null
+          outdoor_type: string[]
+          sources: Json
+          venue_type: string[]
+        }
+        Insert: {
+          confidence: string
+          id?: string
+          imported_at?: string
+          lat?: number | null
+          lng?: number | null
+          name: string
+          needs_geocoding?: boolean
+          neighborhood: string
+          note?: string | null
+          outdoor_type: string[]
+          sources: Json
+          venue_type: string[]
+        }
+        Update: {
+          confidence?: string
+          id?: string
+          imported_at?: string
+          lat?: number | null
+          lng?: number | null
+          name?: string
+          needs_geocoding?: boolean
+          neighborhood?: string
+          note?: string | null
+          outdoor_type?: string[]
+          sources?: Json
+          venue_type?: string[]
+        }
+        Relationships: []
+      }
       web_push_subscriptions: {
         Row: {
           auth: string
