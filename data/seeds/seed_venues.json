@@ -1,0 +1,1295 @@
+[
+  {
+    "name": "Brasserie Prins",
+    "lat": 55.673652,
+    "lng": 12.553401,
+    "neighborhood": "Frederiksberg",
+    "venue_type": [
+      "restaurant"
+    ],
+    "outdoor_type": [
+      "courtyard",
+      "garden"
+    ],
+    "sources": [
+      "mymaps:to_sultne_piger",
+      "kml_desc"
+    ],
+    "confidence": "verified",
+    "source_tier": "verified_multi_source"
+  },
+  {
+    "name": "Fasangården",
+    "lat": 55.67502,
+    "lng": 12.521278,
+    "neighborhood": "Frederiksberg",
+    "venue_type": [
+      "restaurant"
+    ],
+    "outdoor_type": [
+      "garden"
+    ],
+    "sources": [
+      "mymaps:to_sultne_piger",
+      "visitcopenhagen"
+    ],
+    "confidence": "verified",
+    "source_tier": "verified_multi_source"
+  },
+  {
+    "name": "Mielcke & Hurtigkarl",
+    "lat": 55.674722,
+    "lng": 12.530857,
+    "neighborhood": "Frederiksberg",
+    "venue_type": [
+      "restaurant"
+    ],
+    "outdoor_type": [
+      "garden"
+    ],
+    "sources": [
+      "mymaps:to_sultne_piger",
+      "visitcopenhagen"
+    ],
+    "confidence": "verified",
+    "source_tier": "verified_multi_source"
+  },
+  {
+    "name": "Les Trois Cochons",
+    "lat": 55.673856,
+    "lng": 12.549994,
+    "neighborhood": "Frederiksberg/Vesterbro",
+    "venue_type": [
+      "restaurant"
+    ],
+    "outdoor_type": [
+      "sidewalk"
+    ],
+    "sources": [
+      "mymaps:to_sultne_piger",
+      "cofoco"
+    ],
+    "confidence": "verified",
+    "source_tier": "verified_multi_source"
+  },
+  {
+    "name": "Bottega Barlie",
+    "lat": 55.687329,
+    "lng": 12.585645,
+    "neighborhood": "Indre By",
+    "venue_type": [
+      "restaurant"
+    ],
+    "outdoor_type": [
+      "terrace"
+    ],
+    "sources": [
+      "mymaps:to_sultne_piger",
+      "visitcopenhagen"
+    ],
+    "confidence": "verified",
+    "source_tier": "verified_multi_source"
+  },
+  {
+    "name": "Bøf & Ost",
+    "lat": 55.679688,
+    "lng": 12.575917,
+    "neighborhood": "Indre By",
+    "venue_type": [
+      "restaurant"
+    ],
+    "outdoor_type": [
+      "courtyard"
+    ],
+    "sources": [
+      "mymaps:to_sultne_piger",
+      "kml_desc",
+      "visitcopenhagen"
+    ],
+    "confidence": "verified",
+    "source_tier": "verified_multi_source"
+  },
+  {
+    "name": "Pastis",
+    "lat": 55.682499,
+    "lng": 12.582087,
+    "neighborhood": "Indre By",
+    "venue_type": [
+      "restaurant"
+    ],
+    "outdoor_type": [
+      "sidewalk"
+    ],
+    "sources": [
+      "mymaps:to_sultne_piger",
+      "kml_desc"
+    ],
+    "confidence": "verified",
+    "source_tier": "verified_multi_source"
+  },
+  {
+    "name": "Picnic på Glyptoteket",
+    "lat": 55.672942,
+    "lng": 12.572643,
+    "neighborhood": "Indre By",
+    "venue_type": [
+      "cafe"
+    ],
+    "outdoor_type": [
+      "rooftop"
+    ],
+    "sources": [
+      "mymaps:to_sultne_piger",
+      "visitcopenhagen"
+    ],
+    "confidence": "verified",
+    "source_tier": "verified_multi_source"
+  },
+  {
+    "name": "Sticks'n'Sushi",
+    "lat": 55.669697,
+    "lng": 12.554685,
+    "neighborhood": "Indre By",
+    "venue_type": [
+      "restaurant"
+    ],
+    "outdoor_type": [
+      "rooftop"
+    ],
+    "sources": [
+      "mymaps:to_sultne_piger",
+      "rooftopguide",
+      "euroman"
+    ],
+    "confidence": "verified",
+    "source_tier": "verified_multi_source"
+  },
+  {
+    "name": "Kødbyens Fiskebar",
+    "lat": 55.667903,
+    "lng": 12.559233,
+    "neighborhood": "Kødbyen",
+    "venue_type": [
+      "restaurant"
+    ],
+    "outdoor_type": [
+      "terrace"
+    ],
+    "sources": [
+      "mymaps:to_sultne_piger",
+      "scandinaviastandard",
+      "visitcopenhagen",
+      "migogkbh"
+    ],
+    "confidence": "verified",
+    "source_tier": "verified_multi_source"
+  },
+  {
+    "name": "BRUS",
+    "lat": 55.692154,
+    "lng": 12.556134,
+    "neighborhood": "Nørrebro",
+    "venue_type": [
+      "bar"
+    ],
+    "outdoor_type": [
+      "terrace"
+    ],
+    "sources": [
+      "mymaps:to_sultne_piger",
+      "visitcopenhagen"
+    ],
+    "confidence": "verified",
+    "source_tier": "verified_multi_source"
+  },
+  {
+    "name": "La Banchina",
+    "lat": 55.689304,
+    "lng": 12.610927,
+    "neighborhood": "Refshaleøen",
+    "venue_type": [
+      "cafe"
+    ],
+    "outdoor_type": [
+      "terrace"
+    ],
+    "sources": [
+      "mymaps:to_sultne_piger",
+      "scandinaviastandard",
+      "visitcopenhagen"
+    ],
+    "confidence": "verified",
+    "source_tier": "verified_multi_source"
+  },
+  {
+    "name": "Rakils Spisehus - BaneGaarden",
+    "lat": 55.658567,
+    "lng": 12.542464,
+    "neighborhood": "Sydhavn",
+    "venue_type": [
+      "restaurant"
+    ],
+    "outdoor_type": [
+      "terrace"
+    ],
+    "sources": [
+      "mymaps:to_sultne_piger",
+      "kml_desc"
+    ],
+    "confidence": "verified",
+    "source_tier": "verified_multi_source"
+  },
+  {
+    "name": "Café Dyrehaven",
+    "lat": 55.665668,
+    "lng": 12.549604,
+    "neighborhood": "Vesterbro",
+    "venue_type": [
+      "cafe"
+    ],
+    "outdoor_type": [
+      "sidewalk"
+    ],
+    "sources": [
+      "mymaps:to_sultne_piger",
+      "oregongirl"
+    ],
+    "confidence": "verified",
+    "source_tier": "verified_multi_source"
+  },
+  {
+    "name": "Juli Pizzeria",
+    "lat": 55.698449,
+    "lng": 12.54304,
+    "neighborhood": "Vesterbro",
+    "venue_type": [
+      "restaurant"
+    ],
+    "outdoor_type": [
+      "sidewalk"
+    ],
+    "sources": [
+      "mymaps:to_sultne_piger",
+      "kml_desc"
+    ],
+    "confidence": "verified",
+    "source_tier": "verified_multi_source"
+  },
+  {
+    "name": "RASCAL",
+    "lat": 55.680008,
+    "lng": 12.548716,
+    "neighborhood": "Vesterbro",
+    "venue_type": [
+      "restaurant"
+    ],
+    "outdoor_type": [
+      "sidewalk"
+    ],
+    "sources": [
+      "mymaps:to_sultne_piger",
+      "kml_desc"
+    ],
+    "confidence": "verified",
+    "source_tier": "verified_multi_source"
+  },
+  {
+    "name": "Hos Fischer",
+    "lat": 55.701838,
+    "lng": 12.580713,
+    "neighborhood": "Østerbro",
+    "venue_type": [
+      "restaurant"
+    ],
+    "outdoor_type": [
+      "courtyard"
+    ],
+    "sources": [
+      "mymaps:to_sultne_piger",
+      "kml_desc"
+    ],
+    "confidence": "verified",
+    "source_tier": "verified_multi_source"
+  },
+  {
+    "name": "Pirlo",
+    "lat": null,
+    "lng": null,
+    "neighborhood": "Amager",
+    "venue_type": [
+      "restaurant"
+    ],
+    "outdoor_type": [
+      "courtyard",
+      "garden"
+    ],
+    "confidence": "verified",
+    "sources": [
+      "berlingske"
+    ],
+    "note": "Berlingske Søren Frank review; cozy backyard",
+    "source_tier": "verified_press"
+  },
+  {
+    "name": "Tramonto",
+    "lat": null,
+    "lng": null,
+    "neighborhood": "Carlsberg Byen",
+    "venue_type": [
+      "restaurant"
+    ],
+    "outdoor_type": [
+      "rooftop"
+    ],
+    "sources": [
+      "scandinaviastandard",
+      "visitcopenhagen",
+      "rooftopguide",
+      "migogkbh"
+    ],
+    "confidence": "verified",
+    "source_tier": "verified_press"
+  },
+  {
+    "name": "Circolo",
+    "lat": null,
+    "lng": null,
+    "neighborhood": "Frederiksberg",
+    "venue_type": [
+      "restaurant"
+    ],
+    "outdoor_type": [
+      "terrace",
+      "sidewalk"
+    ],
+    "confidence": "verified",
+    "sources": [
+      "femina"
+    ],
+    "note": "Tuscan; outdoor seating along Gammel Kongevej",
+    "source_tier": "verified_press"
+  },
+  {
+    "name": "Italo Caffé",
+    "lat": null,
+    "lng": null,
+    "neighborhood": "Frederiksberg",
+    "venue_type": [
+      "cafe"
+    ],
+    "outdoor_type": [
+      "sidewalk"
+    ],
+    "confidence": "verified",
+    "sources": [
+      "euroman"
+    ],
+    "note": "Værnedamsvej; intimate outdoor seating",
+    "source_tier": "verified_press"
+  },
+  {
+    "name": "Piola Pastificio",
+    "lat": null,
+    "lng": null,
+    "neighborhood": "Frederiksberg",
+    "venue_type": [
+      "restaurant"
+    ],
+    "outdoor_type": [
+      "sidewalk",
+      "terrace"
+    ],
+    "sources": [
+      "storyhunt"
+    ],
+    "confidence": "verified",
+    "source_tier": "verified_press"
+  },
+  {
+    "name": "Restaurant Gemini",
+    "lat": null,
+    "lng": null,
+    "neighborhood": "Frederiksberg",
+    "venue_type": [
+      "restaurant"
+    ],
+    "outdoor_type": [
+      "terrace"
+    ],
+    "confidence": "verified",
+    "sources": [
+      "migogkbh"
+    ],
+    "note": "Gl. Kongevej 10; entry from water side, by Sankt Jørgens Sø",
+    "source_tier": "verified_press"
+  },
+  {
+    "name": "Scarpetta",
+    "lat": null,
+    "lng": null,
+    "neighborhood": "Frederiksberg",
+    "venue_type": [
+      "restaurant"
+    ],
+    "outdoor_type": [
+      "terrace"
+    ],
+    "sources": [
+      "cofoco",
+      "visitcopenhagen"
+    ],
+    "confidence": "verified",
+    "source_tier": "verified_press"
+  },
+  {
+    "name": "Apollo Bar",
+    "lat": null,
+    "lng": null,
+    "neighborhood": "Indre By",
+    "venue_type": [
+      "restaurant"
+    ],
+    "outdoor_type": [
+      "terrace",
+      "courtyard"
+    ],
+    "sources": [
+      "scandinaviastandard",
+      "visitcopenhagen"
+    ],
+    "confidence": "verified",
+    "source_tier": "verified_press"
+  },
+  {
+    "name": "Boltens Gård",
+    "lat": null,
+    "lng": null,
+    "neighborhood": "Indre By",
+    "venue_type": [
+      "restaurant",
+      "bar"
+    ],
+    "outdoor_type": [
+      "courtyard"
+    ],
+    "confidence": "verified",
+    "sources": [
+      "euroman"
+    ],
+    "note": "Food market on Gothersgade",
+    "source_tier": "verified_press"
+  },
+  {
+    "name": "Brewpub",
+    "lat": null,
+    "lng": null,
+    "neighborhood": "Indre By",
+    "venue_type": [
+      "bar"
+    ],
+    "outdoor_type": [
+      "courtyard",
+      "garden"
+    ],
+    "sources": [
+      "tripadvisor",
+      "visitcopenhagen"
+    ],
+    "confidence": "verified",
+    "source_tier": "verified_press"
+  },
+  {
+    "name": "Café på Post & Tele Museum",
+    "lat": null,
+    "lng": null,
+    "neighborhood": "Indre By",
+    "venue_type": [
+      "cafe"
+    ],
+    "outdoor_type": [
+      "rooftop"
+    ],
+    "confidence": "verified",
+    "sources": [
+      "euroman"
+    ],
+    "note": "Rooftop café atop the Post Museum, Købmagergade",
+    "source_tier": "verified_press"
+  },
+  {
+    "name": "Darling Bistro & Bar",
+    "lat": null,
+    "lng": null,
+    "neighborhood": "Indre By",
+    "venue_type": [
+      "restaurant",
+      "bar"
+    ],
+    "outdoor_type": [
+      "terrace"
+    ],
+    "confidence": "verified",
+    "sources": [
+      "berlingske"
+    ],
+    "note": "Terrace facing Slotsholm canals, Christiansborg view",
+    "source_tier": "verified_press"
+  },
+  {
+    "name": "Hotel Danmark Rooftop",
+    "lat": null,
+    "lng": null,
+    "neighborhood": "Indre By",
+    "venue_type": [
+      "rooftop",
+      "bar"
+    ],
+    "outdoor_type": [
+      "rooftop",
+      "terrace"
+    ],
+    "confidence": "verified",
+    "sources": [
+      "femina"
+    ],
+    "note": "Views of Rådhuspladsen + Tivoli; summer DJ",
+    "source_tier": "verified_press"
+  },
+  {
+    "name": "Hotel Grand Joanne Rooftop",
+    "lat": null,
+    "lng": null,
+    "neighborhood": "Indre By",
+    "venue_type": [
+      "rooftop",
+      "bar"
+    ],
+    "outdoor_type": [
+      "rooftop",
+      "terrace"
+    ],
+    "confidence": "verified",
+    "sources": [
+      "femina"
+    ],
+    "note": "Near Central Station; opened 2023",
+    "source_tier": "verified_press"
+  },
+  {
+    "name": "Hotel SP34 Rooftop",
+    "lat": null,
+    "lng": null,
+    "neighborhood": "Indre By",
+    "venue_type": [
+      "rooftop",
+      "bar"
+    ],
+    "outdoor_type": [
+      "rooftop",
+      "courtyard"
+    ],
+    "confidence": "verified",
+    "sources": [
+      "euroman"
+    ],
+    "note": "First-floor terrace tucked in courtyard",
+    "source_tier": "verified_press"
+  },
+  {
+    "name": "Illum Rooftop",
+    "lat": null,
+    "lng": null,
+    "neighborhood": "Indre By",
+    "venue_type": [
+      "rooftop"
+    ],
+    "outdoor_type": [
+      "rooftop",
+      "terrace"
+    ],
+    "sources": [
+      "visitcopenhagen",
+      "metro.dk"
+    ],
+    "confidence": "verified",
+    "source_tier": "verified_press"
+  },
+  {
+    "name": "Kismet",
+    "lat": null,
+    "lng": null,
+    "neighborhood": "Indre By",
+    "venue_type": [
+      "cafe"
+    ],
+    "outdoor_type": [
+      "terrace"
+    ],
+    "confidence": "verified",
+    "sources": [
+      "euroman"
+    ],
+    "note": "South-facing terrace",
+    "source_tier": "verified_press"
+  },
+  {
+    "name": "Llama",
+    "lat": null,
+    "lng": null,
+    "neighborhood": "Indre By",
+    "venue_type": [
+      "restaurant"
+    ],
+    "outdoor_type": [
+      "terrace",
+      "courtyard"
+    ],
+    "sources": [
+      "cofoco"
+    ],
+    "confidence": "verified",
+    "source_tier": "verified_press"
+  },
+  {
+    "name": "Manon Les Suites",
+    "lat": null,
+    "lng": null,
+    "neighborhood": "Indre By",
+    "venue_type": [
+      "rooftop"
+    ],
+    "outdoor_type": [
+      "rooftop"
+    ],
+    "sources": [
+      "rooftopguide",
+      "visitcopenhagen"
+    ],
+    "confidence": "verified",
+    "source_tier": "verified_press"
+  },
+  {
+    "name": "Petanque",
+    "lat": null,
+    "lng": null,
+    "neighborhood": "Indre By",
+    "venue_type": [
+      "bar"
+    ],
+    "outdoor_type": [
+      "rooftop",
+      "terrace"
+    ],
+    "confidence": "verified",
+    "sources": [
+      "euroman"
+    ],
+    "note": "Rosé + boule on a rooftop court",
+    "source_tier": "verified_press"
+  },
+  {
+    "name": "Restaurant Babylon (Søpavillonen)",
+    "lat": null,
+    "lng": null,
+    "neighborhood": "Indre By",
+    "venue_type": [
+      "restaurant"
+    ],
+    "outdoor_type": [
+      "terrace"
+    ],
+    "confidence": "verified",
+    "sources": [
+      "migogkbh"
+    ],
+    "note": "Large terrace overlooking Peblinge Sø",
+    "source_tier": "verified_press"
+  },
+  {
+    "name": "Restaurant Tårnet",
+    "lat": null,
+    "lng": null,
+    "neighborhood": "Indre By",
+    "venue_type": [
+      "restaurant"
+    ],
+    "outdoor_type": [
+      "terrace",
+      "rooftop"
+    ],
+    "confidence": "verified",
+    "sources": [
+      "politiken",
+      "berlingske"
+    ],
+    "note": "Atop Christiansborg tower; outdoor terrace; widely reviewed",
+    "source_tier": "verified_press"
+  },
+  {
+    "name": "Roof Bar",
+    "lat": null,
+    "lng": null,
+    "neighborhood": "Indre By",
+    "venue_type": [
+      "rooftop"
+    ],
+    "outdoor_type": [
+      "rooftop"
+    ],
+    "sources": [
+      "rooftopguide",
+      "femina",
+      "migogkbh"
+    ],
+    "confidence": "verified",
+    "source_tier": "verified_press"
+  },
+  {
+    "name": "Seaside Toldboden",
+    "lat": null,
+    "lng": null,
+    "neighborhood": "Indre By",
+    "venue_type": [
+      "restaurant",
+      "bar",
+      "cafe"
+    ],
+    "outdoor_type": [
+      "terrace"
+    ],
+    "confidence": "verified",
+    "sources": [
+      "migogkbh"
+    ],
+    "note": "Nordre Toldbod 18–24; multiple kitchens, harbor-front terrace",
+    "source_tier": "verified_press"
+  },
+  {
+    "name": "Vækst",
+    "lat": null,
+    "lng": null,
+    "neighborhood": "Indre By",
+    "venue_type": [
+      "restaurant"
+    ],
+    "outdoor_type": [
+      "courtyard"
+    ],
+    "sources": [
+      "cofoco",
+      "visitcopenhagen"
+    ],
+    "confidence": "verified",
+    "source_tier": "verified_press"
+  },
+  {
+    "name": "Bistro Summér",
+    "lat": null,
+    "lng": null,
+    "neighborhood": "Indre By/Nyhavn",
+    "venue_type": [
+      "restaurant"
+    ],
+    "outdoor_type": [
+      "terrace"
+    ],
+    "sources": [
+      "travelmag",
+      "71nyhavn"
+    ],
+    "confidence": "verified",
+    "source_tier": "verified_press"
+  },
+  {
+    "name": "Corsa Nordhavn",
+    "lat": null,
+    "lng": null,
+    "neighborhood": "Nordhavn",
+    "venue_type": [
+      "restaurant"
+    ],
+    "outdoor_type": [
+      "terrace"
+    ],
+    "sources": [
+      "cofoco",
+      "visitcopenhagen"
+    ],
+    "confidence": "verified",
+    "source_tier": "verified_press"
+  },
+  {
+    "name": "Restaurant Silo",
+    "lat": null,
+    "lng": null,
+    "neighborhood": "Nordhavn",
+    "venue_type": [
+      "restaurant",
+      "rooftop"
+    ],
+    "outdoor_type": [
+      "rooftop"
+    ],
+    "confidence": "verified",
+    "sources": [
+      "femina",
+      "migogkbh"
+    ],
+    "note": "17th floor; panoramic Copenhagen views",
+    "source_tier": "verified_press"
+  },
+  {
+    "name": "Restaurant Judie",
+    "lat": null,
+    "lng": null,
+    "neighborhood": "Nyhavn",
+    "venue_type": [
+      "restaurant"
+    ],
+    "outdoor_type": [
+      "terrace"
+    ],
+    "sources": [
+      "wonderfulcph"
+    ],
+    "confidence": "verified",
+    "source_tier": "verified_press"
+  },
+  {
+    "name": "Kima",
+    "lat": null,
+    "lng": null,
+    "neighborhood": "Nørrebro",
+    "venue_type": [
+      "restaurant"
+    ],
+    "outdoor_type": [
+      "sidewalk"
+    ],
+    "confidence": "verified",
+    "sources": [
+      "euroman"
+    ],
+    "note": "Frederiksborgvej; tables on small square",
+    "source_tier": "verified_press"
+  },
+  {
+    "name": "Lunden",
+    "lat": null,
+    "lng": null,
+    "neighborhood": "Nørrebro",
+    "venue_type": [
+      "restaurant"
+    ],
+    "outdoor_type": [
+      "garden"
+    ],
+    "sources": [
+      "oregongirl"
+    ],
+    "confidence": "verified",
+    "source_tier": "verified_press"
+  },
+  {
+    "name": "Aure",
+    "lat": null,
+    "lng": null,
+    "neighborhood": "Refshaleøen",
+    "venue_type": [
+      "restaurant"
+    ],
+    "outdoor_type": [
+      "terrace"
+    ],
+    "sources": [
+      "wonderfulcph",
+      "michelin"
+    ],
+    "confidence": "verified",
+    "source_tier": "verified_press"
+  },
+  {
+    "name": "Reffen",
+    "lat": null,
+    "lng": null,
+    "neighborhood": "Refshaleøen",
+    "venue_type": [
+      "restaurant"
+    ],
+    "outdoor_type": [
+      "terrace"
+    ],
+    "sources": [
+      "visitcopenhagen"
+    ],
+    "confidence": "verified",
+    "source_tier": "verified_press"
+  },
+  {
+    "name": "PAULI",
+    "lat": null,
+    "lng": null,
+    "neighborhood": "Sydhavn",
+    "venue_type": [
+      "restaurant",
+      "bar"
+    ],
+    "outdoor_type": [
+      "terrace"
+    ],
+    "confidence": "verified",
+    "sources": [
+      "politiken"
+    ],
+    "note": "Politiken Ibyen 'Årets Restaurant' 2023; outdoor seating",
+    "source_tier": "verified_press"
+  },
+  {
+    "name": "Café Asta",
+    "lat": null,
+    "lng": null,
+    "neighborhood": "Valby",
+    "venue_type": [
+      "cafe"
+    ],
+    "outdoor_type": [
+      "terrace",
+      "sidewalk"
+    ],
+    "confidence": "verified",
+    "sources": [
+      "migogkbh"
+    ],
+    "note": "Yellow house on Valby Langgade",
+    "source_tier": "verified_press"
+  },
+  {
+    "name": "Corsa Vesterbro",
+    "lat": null,
+    "lng": null,
+    "neighborhood": "Vesterbro",
+    "venue_type": [
+      "restaurant"
+    ],
+    "outdoor_type": [
+      "sidewalk"
+    ],
+    "sources": [
+      "cofoco"
+    ],
+    "confidence": "verified",
+    "source_tier": "verified_press"
+  },
+  {
+    "name": "Do More",
+    "lat": null,
+    "lng": null,
+    "neighborhood": "Vesterbro",
+    "venue_type": [
+      "restaurant",
+      "rooftop"
+    ],
+    "outdoor_type": [
+      "rooftop",
+      "terrace"
+    ],
+    "confidence": "verified",
+    "sources": [
+      "berlingske",
+      "migogkbh"
+    ],
+    "note": "Rooftop on top of IKEA Dybbølsbro; 'Scandirabian' kitchen",
+    "source_tier": "verified_press"
+  },
+  {
+    "name": "H15 Halmtorvet",
+    "lat": null,
+    "lng": null,
+    "neighborhood": "Vesterbro",
+    "venue_type": [
+      "restaurant",
+      "bar"
+    ],
+    "outdoor_type": [
+      "terrace"
+    ],
+    "confidence": "verified",
+    "sources": [
+      "euroman"
+    ],
+    "note": "Sunny terrace; Euroman 'Spisesteder i solen'",
+    "source_tier": "verified_press"
+  },
+  {
+    "name": "KAJEN",
+    "lat": null,
+    "lng": null,
+    "neighborhood": "Vesterbro",
+    "venue_type": [
+      "restaurant",
+      "bar",
+      "rooftop"
+    ],
+    "outdoor_type": [
+      "rooftop",
+      "terrace"
+    ],
+    "confidence": "verified",
+    "sources": [
+      "migogkbh"
+    ],
+    "note": "Fisketorvet; 426 m² rooftop terrace, harbor views",
+    "source_tier": "verified_press"
+  },
+  {
+    "name": "Level Six",
+    "lat": null,
+    "lng": null,
+    "neighborhood": "Vesterbro",
+    "venue_type": [
+      "rooftop"
+    ],
+    "outdoor_type": [
+      "rooftop"
+    ],
+    "sources": [
+      "rooftopguide",
+      "migogkbh"
+    ],
+    "confidence": "verified",
+    "source_tier": "verified_press"
+  },
+  {
+    "name": "Lidkoeb",
+    "lat": null,
+    "lng": null,
+    "neighborhood": "Vesterbro",
+    "venue_type": [
+      "bar"
+    ],
+    "outdoor_type": [
+      "courtyard"
+    ],
+    "confidence": "verified",
+    "sources": [
+      "euroman"
+    ],
+    "note": "Cozy half-timbered courtyard",
+    "source_tier": "verified_press"
+  },
+  {
+    "name": "Restaurant Cofoco",
+    "lat": null,
+    "lng": null,
+    "neighborhood": "Vesterbro",
+    "venue_type": [
+      "restaurant"
+    ],
+    "outdoor_type": [
+      "sidewalk"
+    ],
+    "sources": [
+      "cofoco"
+    ],
+    "confidence": "verified",
+    "source_tier": "verified_press"
+  },
+  {
+    "name": "Tivoli Biergarten",
+    "lat": null,
+    "lng": null,
+    "neighborhood": "Vesterbro/Tivoli",
+    "venue_type": [
+      "bar"
+    ],
+    "outdoor_type": [
+      "garden"
+    ],
+    "sources": [
+      "tripadvisor"
+    ],
+    "confidence": "verified",
+    "source_tier": "verified_press"
+  },
+  {
+    "name": "Corsa Østerbro",
+    "lat": null,
+    "lng": null,
+    "neighborhood": "Østerbro",
+    "venue_type": [
+      "restaurant"
+    ],
+    "outdoor_type": [
+      "sidewalk",
+      "terrace"
+    ],
+    "sources": [
+      "cofoco"
+    ],
+    "confidence": "verified",
+    "source_tier": "verified_press"
+  },
+  {
+    "name": "Gro Spiseri (ØsterGRO)",
+    "lat": null,
+    "lng": null,
+    "neighborhood": "Østerbro",
+    "venue_type": [
+      "restaurant"
+    ],
+    "outdoor_type": [
+      "rooftop",
+      "garden"
+    ],
+    "confidence": "verified",
+    "sources": [
+      "euroman",
+      "migogkbh"
+    ],
+    "note": "Rooftop urban farm in Østerbro; historic operators include Stedsans, currently Gro Spiseri",
+    "source_tier": "verified_press"
+  },
+  {
+    "name": "Pavillon",
+    "lat": null,
+    "lng": null,
+    "neighborhood": "Østerbro",
+    "venue_type": [
+      "bar"
+    ],
+    "outdoor_type": [
+      "garden"
+    ],
+    "sources": [
+      "visitcopenhagen"
+    ],
+    "confidence": "verified",
+    "source_tier": "verified_press"
+  },
+  {
+    "name": "Enghave Plads (Kaffe/Kage)",
+    "lat": 55.667222,
+    "lng": 12.546682,
+    "neighborhood": "Frederiksberg",
+    "venue_type": [
+      "restaurant"
+    ],
+    "outdoor_type": [
+      "sidewalk"
+    ],
+    "sources": [
+      "mymaps:to_sultne_piger"
+    ],
+    "confidence": "likely",
+    "note": "KML description keyword hits: ['udenfor']",
+    "source_tier": "likely_kml_only"
+  },
+  {
+    "name": "Sonny",
+    "lat": 55.676964,
+    "lng": 12.574255,
+    "neighborhood": "Indre By",
+    "venue_type": [
+      "restaurant"
+    ],
+    "outdoor_type": [
+      "sidewalk"
+    ],
+    "sources": [
+      "mymaps:to_sultne_piger"
+    ],
+    "confidence": "likely",
+    "note": "KML description keyword hits: ['udenfor']",
+    "source_tier": "likely_kml_only"
+  },
+  {
+    "name": "Arrebo",
+    "lat": 55.701046,
+    "lng": 12.541909,
+    "neighborhood": "Nørrebro",
+    "venue_type": [
+      "restaurant"
+    ],
+    "outdoor_type": [
+      "sidewalk"
+    ],
+    "sources": [
+      "mymaps:to_sultne_piger"
+    ],
+    "confidence": "likely",
+    "note": "KML description keyword hits: ['udenfor']",
+    "source_tier": "likely_kml_only"
+  },
+  {
+    "name": "Istanbul Chicken",
+    "lat": 55.702674,
+    "lng": 12.53357,
+    "neighborhood": "Nørrebro",
+    "venue_type": [
+      "restaurant"
+    ],
+    "outdoor_type": [
+      "sidewalk"
+    ],
+    "sources": [
+      "mymaps:to_sultne_piger"
+    ],
+    "confidence": "likely",
+    "note": "KML description keyword hits: ['udenfor']",
+    "source_tier": "likely_kml_only"
+  },
+  {
+    "name": "Bar La Una",
+    "lat": 55.667981,
+    "lng": 12.550213,
+    "neighborhood": "Vesterbro",
+    "venue_type": [
+      "restaurant"
+    ],
+    "outdoor_type": [
+      "sidewalk"
+    ],
+    "sources": [
+      "mymaps:to_sultne_piger"
+    ],
+    "confidence": "likely",
+    "note": "KML description keyword hits: ['udenfor']",
+    "source_tier": "likely_kml_only"
+  },
+  {
+    "name": "DEJ",
+    "lat": 55.668254,
+    "lng": 12.556653,
+    "neighborhood": "Vesterbro",
+    "venue_type": [
+      "restaurant"
+    ],
+    "outdoor_type": [
+      "sidewalk"
+    ],
+    "sources": [
+      "mymaps:to_sultne_piger"
+    ],
+    "confidence": "likely",
+    "note": "KML description keyword hits: ['udeservering']",
+    "source_tier": "likely_kml_only"
+  },
+  {
+    "name": "Wedo Halmtorvet",
+    "lat": 55.668969,
+    "lng": 12.55805,
+    "neighborhood": "Vesterbro",
+    "venue_type": [
+      "restaurant"
+    ],
+    "outdoor_type": [
+      "sidewalk"
+    ],
+    "sources": [
+      "mymaps:to_sultne_piger"
+    ],
+    "confidence": "likely",
+    "note": "KML description keyword hits: ['udenfor']",
+    "source_tier": "likely_kml_only"
+  }
+]
