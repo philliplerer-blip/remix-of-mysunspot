@@ -388,22 +388,47 @@ const Index = () => {
         onDelete={editingSpot ? () => removeSpot(editingSpot.id) : undefined}
       />
       <Sheet open={searchOpen} onOpenChange={setSearchOpen}>
-        <SheetContent side="left" className="w-[88vw] max-w-[380px] p-0 flex flex-col bg-background">
-          <SheetHeader className="border-b border-border px-4 py-4">
-            <SheetTitle className="font-display text-xl">Search bars</SheetTitle>
-            <div className="relative mt-2">
-              <Search className="absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
+        <SheetContent
+          side="right"
+          className="w-[88vw] max-w-[380px] p-0 flex flex-col border-l border-border bg-background/95 backdrop-blur-xl pt-safe pb-safe"
+        >
+          <SheetHeader className="space-y-3 border-b border-border/60 px-4 pb-3 pt-4 text-left">
+            <div className="flex items-center justify-between">
+              <SheetTitle className="font-display text-[1.7rem] font-semibold tracking-tight">
+                Search
+              </SheetTitle>
+              <button
+                onClick={() => setSearchOpen(false)}
+                aria-label="Close search"
+                className="text-sm font-medium text-primary transition-opacity active:opacity-60"
+              >
+                Cancel
+              </button>
+            </div>
+            <div className="relative">
+              <Search className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
               <Input
                 autoFocus
-                placeholder="Search by name or area"
+                placeholder="Bars or area"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="pl-9"
+                className="h-10 rounded-xl border-0 bg-muted pl-9 pr-9 text-base placeholder:text-muted-foreground focus-visible:ring-1 focus-visible:ring-primary/40"
               />
+              {searchQuery && (
+                <button
+                  onClick={() => setSearchQuery("")}
+                  aria-label="Clear search"
+                  className="absolute right-2.5 top-1/2 grid size-5 -translate-y-1/2 place-items-center rounded-full bg-foreground/20 text-background"
+                >
+                  <X className="size-3" />
+                </button>
+              )}
             </div>
-            <p className="text-[0.68rem] text-muted-foreground">Sorted by distance from you</p>
+            <p className="text-[0.7rem] uppercase tracking-wide text-muted-foreground">
+              Nearest to you
+            </p>
           </SheetHeader>
-          <div className="flex-1 overflow-y-auto px-2 py-2">
+          <div className="flex-1 overflow-y-auto px-3 py-3 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
             {(() => {
               const q = searchQuery.trim().toLowerCase();
               const list = [...directoryBarsAsBars]
@@ -416,10 +441,12 @@ const Index = () => {
               if (list.length === 0) {
                 return <p className="px-3 py-6 text-center text-sm text-muted-foreground">No matches</p>;
               }
-              return list.map((b) => (
-                <button
-                  key={b.id}
-                  onClick={() => {
+              return (
+                <ul className="overflow-hidden rounded-2xl border border-border/60 bg-card divide-y divide-border/60">
+                  {list.map((b) => (
+                    <li key={b.id}>
+                      <button
+                        onClick={() => {
                     setSelected(b.id);
                     setSearchOpen(false);
                     setExpanded(false);
@@ -427,15 +454,18 @@ const Index = () => {
                       cardRefs.current[b.id]?.scrollIntoView({ behavior: "smooth", block: "center" });
                     });
                   }}
-                  className="flex w-full items-center justify-between gap-3 rounded-xl px-3 py-2.5 text-left transition-colors hover:bg-muted"
-                >
-                  <div className="min-w-0">
-                    <p className="truncate text-sm font-semibold text-foreground">{b.name}</p>
-                    <p className="truncate text-xs text-muted-foreground">{b.area} · {stateCopy[b.state].label}</p>
-                  </div>
-                  <span className="shrink-0 text-xs text-muted-foreground">{b.dist}</span>
-                </button>
-              ));
+                        className="flex w-full items-center justify-between gap-3 px-4 py-3 text-left transition-colors active:bg-muted"
+                      >
+                        <div className="min-w-0">
+                          <p className="truncate text-[0.95rem] font-medium text-foreground">{b.name}</p>
+                          <p className="truncate text-xs text-muted-foreground">{b.area} · {stateCopy[b.state].label}</p>
+                        </div>
+                        <span className="shrink-0 text-xs tabular-nums text-muted-foreground">{b.dist}</span>
+                      </button>
+                    </li>
+                  ))}
+                </ul>
+              );
             })()}
           </div>
         </SheetContent>
