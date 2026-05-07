@@ -1,1 +1,4 @@
 project_id = "qamhxhmtnvdotwhcuybs"
+
+[functions.insert-venues]
+verify_jwt = false
