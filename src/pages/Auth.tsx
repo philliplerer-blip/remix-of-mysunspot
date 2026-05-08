@@ -112,6 +112,13 @@ const Auth = () => {
         >
           {mode === "signin" ? "Need an account? Sign up" : "Already have an account? Sign in"}
         </button>
+        <button
+          type="button"
+          className="mt-2 w-full text-xs text-muted-foreground underline-offset-4 hover:underline"
+          onClick={() => nav("/venue/auth")}
+        >
+          Are you a restaurant or bar? Venue partner login →
+        </button>
       </section>
     </main>
   );

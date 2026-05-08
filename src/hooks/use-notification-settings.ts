@@ -8,6 +8,7 @@ export interface NotificationSettings {
   cooldown_minutes: number;
   quiet_start_hour: number;
   quiet_end_hour: number;
+  venue_blasts_enabled: boolean;
 }
 
 const DEFAULTS: NotificationSettings = {
@@ -16,6 +17,7 @@ const DEFAULTS: NotificationSettings = {
   cooldown_minutes: 180,
   quiet_start_hour: 22,
   quiet_end_hour: 8,
+  venue_blasts_enabled: true,
 };
 
 export const useNotificationSettings = () => {
@@ -27,7 +29,7 @@ export const useNotificationSettings = () => {
     if (!user) return;
     const { data } = await supabase
       .from("notification_settings")
-      .select("enabled,threshold_pct,cooldown_minutes,quiet_start_hour,quiet_end_hour")
+      .select("enabled,threshold_pct,cooldown_minutes,quiet_start_hour,quiet_end_hour,venue_blasts_enabled")
       .eq("user_id", user.id)
       .maybeSingle();
     if (data) setSettings(data as NotificationSettings);

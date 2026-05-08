@@ -1,6 +1,7 @@
-import { Compass, Heart, Users, User } from "lucide-react";
+import { Bell, Compass, Heart, Users, User } from "lucide-react";
 import { NavLink } from "react-router-dom";
 import { cn } from "@/lib/utils";
+import { useNews } from "@/hooks/use-news";
 
 interface BottomNavProps {
   favoritesCount: number;
@@ -10,11 +11,14 @@ interface BottomNavProps {
 const items = [
   { to: "/", label: "Discover", icon: Compass },
   { to: "/favorites", label: "Favorites", icon: Heart },
+  { to: "/news", label: "News", icon: Bell },
   { to: "/friends", label: "Friends", icon: Users },
   { to: "/profile", label: "Profile", icon: User },
 ];
 
-export const BottomNav = ({ favoritesCount }: BottomNavProps) => (
+export const BottomNav = ({ favoritesCount }: BottomNavProps) => {
+  const { unreadCount } = useNews();
+  return (
   <nav
     className="sticky bottom-0 z-20 mt-auto border-t border-butter/40 bg-espresso/85 px-2 pt-1.5 pb-safe backdrop-blur-xl xs:px-4"
     style={{ minHeight: "calc(56px + env(safe-area-inset-bottom))" }}
@@ -34,11 +38,19 @@ export const BottomNav = ({ favoritesCount }: BottomNavProps) => (
               )
             }
           >
-            <Icon className="size-5" />
+            <span className="relative">
+              <Icon className="size-5" />
+              {to === "/news" && unreadCount > 0 && (
+                <span className="absolute -right-1 -top-1 grid size-4 place-items-center rounded-full bg-red-500 text-[9px] font-bold text-white">
+                  {unreadCount > 9 ? "9+" : unreadCount}
+                </span>
+              )}
+            </span>
             <span className="whitespace-nowrap">{label}</span>
           </NavLink>
         </li>
       ))}
     </ul>
   </nav>
-);
+  );
+};
