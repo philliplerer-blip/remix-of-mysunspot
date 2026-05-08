@@ -95,6 +95,65 @@ export type Database = {
         }
         Relationships: []
       }
+      blasts: {
+        Row: {
+          amount_dkk: number
+          body: string
+          created_at: string
+          error: string | null
+          id: string
+          link_url: string | null
+          paid_at: string | null
+          recipients_count: number
+          sent_at: string | null
+          sent_by: string
+          status: Database["public"]["Enums"]["blast_status"]
+          stripe_session_id: string | null
+          title: string
+          venue_id: string
+        }
+        Insert: {
+          amount_dkk?: number
+          body: string
+          created_at?: string
+          error?: string | null
+          id?: string
+          link_url?: string | null
+          paid_at?: string | null
+          recipients_count?: number
+          sent_at?: string | null
+          sent_by: string
+          status?: Database["public"]["Enums"]["blast_status"]
+          stripe_session_id?: string | null
+          title: string
+          venue_id: string
+        }
+        Update: {
+          amount_dkk?: number
+          body?: string
+          created_at?: string
+          error?: string | null
+          id?: string
+          link_url?: string | null
+          paid_at?: string | null
+          recipients_count?: number
+          sent_at?: string | null
+          sent_by?: string
+          status?: Database["public"]["Enums"]["blast_status"]
+          stripe_session_id?: string | null
+          title?: string
+          venue_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "blasts_venue_id_fkey"
+            columns: ["venue_id"]
+            isOneToOne: false
+            referencedRelation: "bars_directory"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       custom_spots: {
         Row: {
           alerts_enabled: boolean
@@ -248,6 +307,57 @@ export type Database = {
         }
         Relationships: []
       }
+      news_items: {
+        Row: {
+          blast_id: string | null
+          body: string
+          created_at: string
+          id: string
+          link_url: string | null
+          read_at: string | null
+          title: string
+          user_id: string
+          venue_id: string
+        }
+        Insert: {
+          blast_id?: string | null
+          body: string
+          created_at?: string
+          id?: string
+          link_url?: string | null
+          read_at?: string | null
+          title: string
+          user_id: string
+          venue_id: string
+        }
+        Update: {
+          blast_id?: string | null
+          body?: string
+          created_at?: string
+          id?: string
+          link_url?: string | null
+          read_at?: string | null
+          title?: string
+          user_id?: string
+          venue_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "news_items_blast_id_fkey"
+            columns: ["blast_id"]
+            isOneToOne: false
+            referencedRelation: "blasts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "news_items_venue_id_fkey"
+            columns: ["venue_id"]
+            isOneToOne: false
+            referencedRelation: "bars_directory"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       notification_settings: {
         Row: {
           cooldown_minutes: number
@@ -257,6 +367,7 @@ export type Database = {
           threshold_pct: number
           updated_at: string
           user_id: string
+          venue_blasts_enabled: boolean
         }
         Insert: {
           cooldown_minutes?: number
@@ -266,6 +377,7 @@ export type Database = {
           threshold_pct?: number
           updated_at?: string
           user_id: string
+          venue_blasts_enabled?: boolean
         }
         Update: {
           cooldown_minutes?: number
@@ -275,6 +387,7 @@ export type Database = {
           threshold_pct?: number
           updated_at?: string
           user_id?: string
+          venue_blasts_enabled?: boolean
         }
         Relationships: []
       }
@@ -493,6 +606,130 @@ export type Database = {
         }
         Relationships: []
       }
+      user_location_pings: {
+        Row: {
+          id: number
+          lat: number
+          lng: number
+          seen_at: string
+          user_id: string
+        }
+        Insert: {
+          id?: number
+          lat: number
+          lng: number
+          seen_at?: string
+          user_id: string
+        }
+        Update: {
+          id?: number
+          lat?: number
+          lng?: number
+          seen_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      user_roles: {
+        Row: {
+          created_at: string
+          id: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          role?: Database["public"]["Enums"]["app_role"]
+          user_id?: string
+        }
+        Relationships: []
+      }
+      venue_claims: {
+        Row: {
+          business_name: string
+          contact_email: string
+          id: string
+          phone: string | null
+          reject_reason: string | null
+          reviewed_at: string | null
+          reviewed_by: string | null
+          status: Database["public"]["Enums"]["venue_claim_status"]
+          submitted_at: string
+          user_id: string
+          venue_id: string
+        }
+        Insert: {
+          business_name: string
+          contact_email: string
+          id?: string
+          phone?: string | null
+          reject_reason?: string | null
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          status?: Database["public"]["Enums"]["venue_claim_status"]
+          submitted_at?: string
+          user_id: string
+          venue_id: string
+        }
+        Update: {
+          business_name?: string
+          contact_email?: string
+          id?: string
+          phone?: string | null
+          reject_reason?: string | null
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          status?: Database["public"]["Enums"]["venue_claim_status"]
+          submitted_at?: string
+          user_id?: string
+          venue_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "venue_claims_venue_id_fkey"
+            columns: ["venue_id"]
+            isOneToOne: false
+            referencedRelation: "bars_directory"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      venue_owners: {
+        Row: {
+          created_at: string
+          id: string
+          user_id: string
+          venue_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          user_id: string
+          venue_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          user_id?: string
+          venue_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "venue_owners_venue_id_fkey"
+            columns: ["venue_id"]
+            isOneToOne: false
+            referencedRelation: "bars_directory"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       venues: {
         Row: {
           confidence: string
@@ -625,6 +862,7 @@ export type Database = {
         Returns: boolean
       }
       cleanup_expired_presence: { Args: never; Returns: undefined }
+      cleanup_location_pings: { Args: never; Returns: undefined }
       cleanup_proximity_log: { Args: never; Returns: undefined }
       evaluate_proximity: {
         Args: { _session_id: string }
@@ -648,7 +886,18 @@ export type Database = {
           visibility: Database["public"]["Enums"]["profile_visibility"]
         }[]
       }
+      has_role: {
+        Args: {
+          _role: Database["public"]["Enums"]["app_role"]
+          _user_id: string
+        }
+        Returns: boolean
+      }
       is_allowed_status_emoji: { Args: { _e: string }; Returns: boolean }
+      is_venue_owner_of: {
+        Args: { _user_id: string; _venue_id: string }
+        Returns: boolean
+      }
       list_recent_proximity_alerts: {
         Args: never
         Returns: {
@@ -693,10 +942,22 @@ export type Database = {
           isSetofReturn: false
         }
       }
+      venue_can_send_blast: { Args: { _venue_id: string }; Returns: boolean }
+      venue_hourly_trend: {
+        Args: { _venue_id: string }
+        Returns: {
+          hour: string
+          users: number
+        }[]
+      }
+      venue_nearby_count: { Args: { _venue_id: string }; Returns: number }
     }
     Enums: {
+      app_role: "user" | "venue_owner" | "admin"
+      blast_status: "pending_payment" | "paid" | "sent" | "failed" | "cancelled"
       friendship_status: "pending" | "accepted" | "blocked"
       profile_visibility: "friends_only" | "private"
+      venue_claim_status: "pending" | "approved" | "rejected"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -824,8 +1085,11 @@ export type CompositeTypes<
 export const Constants = {
   public: {
     Enums: {
+      app_role: ["user", "venue_owner", "admin"],
+      blast_status: ["pending_payment", "paid", "sent", "failed", "cancelled"],
       friendship_status: ["pending", "accepted", "blocked"],
       profile_visibility: ["friends_only", "private"],
+      venue_claim_status: ["pending", "approved", "rejected"],
     },
   },
 } as const
