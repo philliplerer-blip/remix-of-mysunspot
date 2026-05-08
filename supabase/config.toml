@@ -2,3 +2,15 @@ project_id = "qamhxhmtnvdotwhcuybs"
 
 [functions.insert-venues]
 verify_jwt = false
+
+[functions.create-blast-checkout]
+verify_jwt = false
+
+[functions.send-venue-blast]
+verify_jwt = false
+
+[functions.record-location-ping]
+verify_jwt = false
+
+[functions.approve-venue-claim]
+verify_jwt = false
